@@ -1,18 +1,156 @@
 'use client';
-import {useEffect,useMemo,useState} from 'react';import {createClient} from '@supabase/supabase-js';import type {CartItem,MenuCategory,MenuItem,PublicOrder,CartChoice} from '@/lib/types';
+
+import {useEffect,useMemo,useState} from 'react';
+import {createClient} from '@supabase/supabase-js';
+import type {CartItem,MenuCategory,MenuItem,PublicOrder,CartChoice} from '@/lib/types';
+import {fullMenuItemName,modifierDisplay} from '@/lib/menu-names';
+
 const money=(c:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
 type Settings={onlineOrderingEnabled:boolean;restaurantOpenOverride:string;currentWaitMinutes:number;announcement:string;phone:string;address:string;cashOnly:boolean;atmAvailable:boolean;ledgerEnabled:boolean;hours:any;currentlyOpen?:boolean};
-export default function OrderingApp(){const [menu,setMenu]=useState<MenuCategory[]>([]),[settings,setSettings]=useState<Settings|null>(null),[ledger,setLedger]=useState<PublicOrder[]>([]),[selected,setSelected]=useState<MenuItem|null>(null),[cart,setCart]=useState<CartItem[]>([]),[status,setStatus]=useState<any>(null),[msg,setMsg]=useState('');
- const load=async()=>{const [m,s,l]=await Promise.all([fetch('/api/menu',{cache:'no-store'}).then(r=>r.json()),fetch('/api/settings',{cache:'no-store'}).then(r=>r.json()),fetch('/api/orders/public',{cache:'no-store'}).then(r=>r.json())]);if(Array.isArray(m))setMenu(m);if(!s.error)setSettings(s);if(Array.isArray(l))setLedger(l)};useEffect(()=>{load();const saved=localStorage.getItem('noproblemo-order-token');if(saved)check(saved);const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;let channel:any=null;if(url&&key){const rt=createClient(url,key,{auth:{persistSession:false}});channel=rt.channel('public-board').on('postgres_changes',{event:'*',schema:'public',table:'public_order_ledger'},()=>load()).on('postgres_changes',{event:'*',schema:'public',table:'menu_items'},()=>load()).on('postgres_changes',{event:'*',schema:'public',table:'public_restaurant_settings'},()=>load()).subscribe();}const fallback=setInterval(load,15000);return()=>{clearInterval(fallback);if(channel)channel.unsubscribe()}},[]);
- const check=async(token:string)=>{const r=await fetch('/api/orders/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token})});if(r.ok)setStatus(await r.json())};useEffect(()=>{if(!status)return;const t=setInterval(()=>{const token=localStorage.getItem('noproblemo-order-token');if(token)check(token)},3500);return()=>clearInterval(t)},[status]);
- const total=useMemo(()=>cart.reduce((s,i)=>s+(i.base_price_cents+i.choices.reduce((x,c)=>x+c.price_cents,0))*i.quantity,0),[cart]);const count=cart.reduce((s,i)=>s+i.quantity,0);
- function add(item:MenuItem,choices:CartChoice[],quantity:number,notes:string){setCart(v=>[...v,{key:crypto.randomUUID(),menu_item_id:item.id,name:item.name,base_price_cents:item.price_cents,choices,quantity,notes}]);setSelected(null);setTimeout(()=>document.getElementById('order')?.scrollIntoView({behavior:'smooth'}),100)}
- async function submit(e:any){e.preventDefault();setMsg('');if(!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false){setMsg(settings?.currentlyOpen===false?'No Problemo is currently closed for online orders.':'Online ordering is paused.');return}const fd=new FormData(e.currentTarget);const payload={firstName:fd.get('firstName'),lastName:fd.get('lastName'),phone:fd.get('phone'),pickupType:fd.get('pickupType'),pickupTime:fd.get('pickupTime')||null,notes:fd.get('notes'),allergyAck:fd.get('allergyAck')==='on',items:cart.map(i=>({menu_item_id:i.menu_item_id,quantity:i.quantity,notes:i.notes,option_ids:i.choices.map(c=>c.optionId)}))};const r=await fetch('/api/orders',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();if(!r.ok){setMsg(d.error||'Could not place order');return}localStorage.setItem('noproblemo-order-token',d.token);setStatus(d);setCart([]);setMsg(`Order #${String(d.order_number).padStart(3,'0')} is on the board.`);load()}
- return <main className="board"><div className="wrap"><header className="hero"><img className="logo" src="/logo.png" alt="No Problemo Taqueria"/><div className="hero-info micro"><span>{settings?.address||'813 Purchase Street, New Bedford, MA 02740'}</span><a href={`tel:${settings?.phone||'508-984-1081'}`} style={{color:'inherit'}}>{settings?.phone||'508-984-1081'}</a><span>CASH ONLY · ATM INSIDE</span></div><div className="hero-actions"><a href="#menu" className="chalk-btn accent">ORDER FROM THE BOARD ↓</a><a className="chalk-btn" href="https://maps.google.com/?q=813+Purchase+Street+New+Bedford+MA+02740">DIRECTIONS</a></div>{settings?.announcement&&<p>{settings.announcement}</p>}<p className="wait">CURRENT WAIT · ~{settings?.currentWaitMinutes??20} MINUTES</p></header><div className="notice micro">PAY CASH WHEN YOU PICK UP · NO ONLINE PAYMENT</div>
- <section id="menu"><h1 className="section-title">THE MENU</h1><div className="scribble"/><div className="menu-grid">{menu.map(c=><section className="category" key={c.id}><h2>{c.name}</h2>{c.description&&<p className="category-desc">{c.description}</p>}{c.items.map(i=><button key={i.id} className={`menu-item ${i.sold_out?'sold':''}`} disabled={i.sold_out} onClick={()=>setSelected(i)}><h3>{i.name}{i.sold_out?' · SOLD OUT':''}</h3><span className="price">{money(i.price_cents)}</span><span className="desc">{i.description}</span></button>)}</section>)}</div></section>
- <section id="order"><h2 className="section-title">YOUR ORDER</h2><div className="scribble"/><div className="order-zone"><div className="chalk-panel"><h2>YOUR CHALK TICKET</h2>{!cart.length&&<p className="small">Tap anything on the menu to start your order.</p>}{cart.map(i=><div className="cart-row" key={i.key}><div className="row-line"><strong>{i.quantity} × {i.name}</strong><span>{money((i.base_price_cents+i.choices.reduce((s,c)=>s+c.price_cents,0))*i.quantity)}</span></div>{i.choices.length>0&&<div className="small">{i.choices.map(c=>c.optionName).join(' · ')}</div>}{i.notes&&<div className="small">Note: {i.notes}</div>}<button className="remove" onClick={()=>setCart(v=>v.filter(x=>x.key!==i.key))}>erase item</button></div>)}<div className="total"><span>TOTAL</span><span>{money(total)}</span></div><p className="micro">PAY CASH AT PICKUP</p></div><form className="chalk-panel" onSubmit={submit}><h2>WHO'S PICKING UP?</h2><div className="checkout-grid"><div className="field"><label>First name</label><input required name="firstName" maxLength={40}/></div><div className="field"><label>Last name / initial</label><input name="lastName" maxLength={40}/></div><div className="field"><label>Phone</label><input required name="phone" type="tel"/></div><div className="field"><label>Pickup</label><select name="pickupType" defaultValue="asap"><option value="asap">ASAP</option><option value="scheduled">Schedule pickup</option></select></div><div className="field full"><label>Pickup time (optional)</label><input name="pickupTime" placeholder="Example: 6:30 PM"/></div><div className="field full"><label>Order notes</label><textarea name="notes" rows={3} maxLength={500}/></div></div><label className="allergy"><input required name="allergyAck" type="checkbox"/><span>I understand I should tell No Problemo about any food allergies and should call the restaurant for allergy-sensitive orders.</span></label><button className="chalk-btn accent" disabled={!cart.length||!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false} type="submit">PLACE CASH ORDER — {money(total)}</button>{(!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false)&&<p className="danger">{settings?.currentlyOpen===false?'WE ARE CURRENTLY CLOSED — YOUR CART WILL STAY HERE.':'ONLINE ORDERS PAUSED — KITCHEN\'S SLAMMED. CALL US OR COME SEE US.'}</p>}{msg&&<p>{msg}</p>}</form></div></section>
- {status&&<section className="chalk-panel"><h2>YOUR ORDER #{String(status.order_number).padStart(3,'0')}</h2><p className="micro">TOTAL {money(status.total_cents)} · PAY CASH AT PICKUP</p><Status status={status.fulfillment_status}/></section>}
- <section id="ledger"><h2 className="section-title">TODAY'S ORDERS</h2><div className="scribble"/><p style={{textAlign:'center'}} className="small">The live chalk ledger shows public order details only. Phone numbers and private notes never appear here.</p><div className="ledger">{ledger.length?ledger.map((o:any)=><article className="ticket" key={o.id}><h3>#{String(o.order_number).padStart(3,'0')} · {o.customer_public_name}</h3>{(o.items||[]).map((x:any,i:number)=><div key={i}>{x.quantity} × {x.name}</div>)}<div className="ticket-status">{o.fulfillment_status.replace('_',' ').toUpperCase()}{o.fulfillment_status==='ready'?' ✓':''}</div></article>):<p>Nothing on the board yet.</p>}</div></section>
- <footer className="footer"><h2 className="section-title">FIND US</h2><p>{settings?.address||'813 Purchase Street, New Bedford, MA 02740'}<br/><a href={`tel:${settings?.phone||'508-984-1081'}`}>{settings?.phone||'508-984-1081'}</a></p><div className="micro">{settings?.hours&&Object.entries(settings.hours).map(([day,span]:any)=><div key={day}>{day.slice(0,3).toUpperCase()} · {span[0]}–{span[1]}</div>)}</div><p>{settings?.cashOnly?'CASH ONLY':''}{settings?.atmAvailable?' · ATM INSIDE':''}</p><a className="chalk-btn" href="https://maps.google.com/?q=813+Purchase+Street+New+Bedford+MA+02740">GET DIRECTIONS</a></footer></div>{selected&&<ItemModal item={selected} onClose={()=>setSelected(null)} onAdd={add}/>} {count>0&&<div className="mobile-cart"><button className="chalk-btn accent" onClick={()=>document.getElementById('order')?.scrollIntoView({behavior:'smooth'})}>{count} ITEM{count!==1?'S':''} · {money(total)} · VIEW ORDER</button></div>}</main>}
-function Status({status}:{status:string}){const steps=['new','cooking','ready','picked_up'];const labels=['ORDER IN','COOKING','READY','PICKED UP'];const idx=status==='accepted'?0:steps.indexOf(status);return <div className="status-track">{labels.map((l,i)=><span className={`status-step ${i<=idx?'active':''}`} key={l}>{l}{i<3?' →':''}</span>)}</div>}
-function ItemModal({item,onClose,onAdd}:{item:MenuItem;onClose:()=>void;onAdd:(i:MenuItem,c:CartChoice[],q:number,n:string)=>void}){const [selected,setSelected]=useState<Record<string,string[]>>({}),[q,setQ]=useState(1),[notes,setNotes]=useState('');const choices=item.modifier_groups.flatMap(g=>(selected[g.id]||[]).map(id=>{const o=g.options.find(x=>x.id===id)!;return {groupId:g.id,groupName:g.name,optionId:o.id,optionName:o.name,price_cents:o.price_cents}}));const price=(item.price_cents+choices.reduce((s,c)=>s+c.price_cents,0))*q;function toggle(g:any,id:string){setSelected(v=>{const curr=v[g.id]||[];if(g.selection_type==='single')return {...v,[g.id]:[id]};return {...v,[g.id]:curr.includes(id)?curr.filter(x=>x!==id):g.max_select&&curr.length>=g.max_select?curr:[...curr,id]}})}return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><div className="modal" role="dialog" aria-modal="true"><button className="close" onClick={onClose}>×</button><h2>{item.name}</h2><p>{item.description}</p><strong>{money(item.price_cents)}</strong>{item.modifier_groups.map(g=><div className="modifier" key={g.id}><h4>{g.name}{g.required?' *':''}</h4>{g.options.map(o=><label className="choice" key={o.id}><input type={g.selection_type==='single'?'radio':'checkbox'} name={g.id} checked={(selected[g.id]||[]).includes(o.id)} onChange={()=>toggle(g,o.id)}/><span>{o.name}{o.price_cents?` (+${money(o.price_cents)})`:''}</span></label>)}</div>)}<div className="modifier"><label>Item note</label><textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={300} rows={2}/></div><div className="qty"><button onClick={()=>setQ(Math.max(1,q-1))}>−</button><strong>{q}</strong><button onClick={()=>setQ(Math.min(20,q+1))}>+</button></div><button className="chalk-btn accent" onClick={()=>onAdd(item,choices,q,notes)}>ADD TO ORDER · {money(price)}</button></div></div>}
+
+export default function OrderingApp(){
+  const [menu,setMenu]=useState<MenuCategory[]>([]);
+  const [settings,setSettings]=useState<Settings|null>(null);
+  const [ledger,setLedger]=useState<PublicOrder[]>([]);
+  const [selected,setSelected]=useState<MenuItem|null>(null);
+  const [activeCategoryId,setActiveCategoryId]=useState('');
+  const [cart,setCart]=useState<CartItem[]>([]);
+  const [status,setStatus]=useState<any>(null);
+  const [msg,setMsg]=useState('');
+
+  const load=async()=>{
+    const [m,s,l]=await Promise.all([
+      fetch('/api/menu',{cache:'no-store'}).then(r=>r.json()),
+      fetch('/api/settings',{cache:'no-store'}).then(r=>r.json()),
+      fetch('/api/orders/public',{cache:'no-store'}).then(r=>r.json())
+    ]);
+    if(Array.isArray(m))setMenu(m);
+    if(!s.error)setSettings(s);
+    if(Array.isArray(l))setLedger(l);
+  };
+
+  useEffect(()=>{
+    load();
+    const saved=localStorage.getItem('noproblemo-order-token');if(saved)check(saved);
+    const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    let channel:any=null;
+    if(url&&key){
+      const rt=createClient(url,key,{auth:{persistSession:false}});
+      channel=rt.channel('public-board')
+        .on('postgres_changes',{event:'*',schema:'public',table:'public_order_ledger'},()=>load())
+        .on('postgres_changes',{event:'*',schema:'public',table:'menu_items'},()=>load())
+        .on('postgres_changes',{event:'*',schema:'public',table:'public_restaurant_settings'},()=>load())
+        .subscribe();
+    }
+    const fallback=setInterval(load,15000);
+    return()=>{clearInterval(fallback);if(channel)channel.unsubscribe()};
+  },[]);
+
+  useEffect(()=>{if(menu.length&&!menu.some(c=>c.id===activeCategoryId))setActiveCategoryId(menu[0].id)},[menu,activeCategoryId]);
+
+  const check=async(token:string)=>{const r=await fetch('/api/orders/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token})});if(r.ok)setStatus(await r.json())};
+  useEffect(()=>{if(!status)return;const t=setInterval(()=>{const token=localStorage.getItem('noproblemo-order-token');if(token)check(token)},3500);return()=>clearInterval(t)},[status]);
+
+  const total=useMemo(()=>cart.reduce((s,i)=>s+(i.base_price_cents+i.choices.reduce((x,c)=>x+c.price_cents,0))*i.quantity,0),[cart]);
+  const count=cart.reduce((s,i)=>s+i.quantity,0);
+  const activeCategory=menu.find(c=>c.id===activeCategoryId)||menu[0];
+
+  function displayName(item:MenuItem){
+    const category=menu.find(c=>c.id===item.category_id);
+    return fullMenuItemName(item.name,category?.name);
+  }
+
+  function add(item:MenuItem,choices:CartChoice[],quantity:number,notes:string){
+    setCart(v=>[...v,{key:crypto.randomUUID(),menu_item_id:item.id,name:displayName(item),base_price_cents:item.price_cents,choices,quantity,notes}]);
+    setSelected(null);
+  }
+
+  async function submit(e:any){
+    e.preventDefault();setMsg('');
+    if(!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false){setMsg(settings?.currentlyOpen===false?'No Problemo is currently closed for online orders.':'Online ordering is paused.');return}
+    const fd=new FormData(e.currentTarget);
+    const payload={
+      firstName:fd.get('firstName'),lastName:fd.get('lastName'),phone:fd.get('phone'),pickupType:fd.get('pickupType'),pickupTime:fd.get('pickupTime')||null,
+      notes:fd.get('notes'),allergyAck:fd.get('allergyAck')==='on',showNameOnLedger:fd.get('showNameOnLedger')==='yes',
+      items:cart.map(i=>({menu_item_id:i.menu_item_id,quantity:i.quantity,notes:i.notes,option_ids:i.choices.map(c=>c.optionId)}))
+    };
+    const r=await fetch('/api/orders',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();
+    if(!r.ok){setMsg(d.error||'Could not place order');return}
+    localStorage.setItem('noproblemo-order-token',d.token);setStatus(d);setCart([]);setMsg(`Order #${String(d.order_number).padStart(3,'0')} is on the board.`);load();
+  }
+
+  return <main className="board"><div className="wrap">
+    <header className="hero compact-hero">
+      <img className="logo compact-logo" src="/logo.png" alt="No Problemo Taqueria"/>
+      <div className="hero-info micro"><span>{settings?.address||'813 Purchase Street, New Bedford, MA 02740'}</span><a href={`tel:${settings?.phone||'508-984-1081'}`}>{settings?.phone||'508-984-1081'}</a><span>CASH ONLY · ATM INSIDE</span></div>
+      <div className="hero-strip"><strong>ORDER ONLINE · PAY CASH AT PICKUP</strong><span>WAIT ~{settings?.currentWaitMinutes??20} MIN</span></div>
+      {settings?.announcement&&<p className="compact-announcement">{settings.announcement}</p>}
+    </header>
+
+    <div className="ordering-workspace">
+      <section id="menu" className="menu-focus">
+        <div className="section-heading-row"><h1>MENU</h1><span className="micro">TAP AN ITEM</span></div>
+        <div className="menu-browser">
+          <nav className="category-nav" aria-label="Menu categories">
+            {menu.map(c=><button key={c.id} className={c.id===activeCategory?.id?'active':''} onClick={()=>setActiveCategoryId(c.id)}><span>{c.name}</span><small>{c.items.length}</small></button>)}
+          </nav>
+          <div className="menu-stage">
+            {activeCategory?<section className="category active-category">
+              <div className="category-head"><h2>{activeCategory.name}</h2>{activeCategory.description&&<p>{activeCategory.description}</p>}</div>
+              <div className="compact-item-list">{activeCategory.items.map(i=><button key={i.id} className={`menu-item ${i.sold_out?'sold':''}`} disabled={i.sold_out} onClick={()=>setSelected(i)}><div className="item-title-row"><h3>{displayName(i)}{i.sold_out?' · SOLD OUT':''}</h3><span className="price">{money(i.price_cents)}</span></div>{i.description&&<span className="desc">{i.description}</span>}</button>)}</div>
+            </section>:<p>Loading menu…</p>}
+          </div>
+        </div>
+      </section>
+
+      <aside id="ledger" className="ledger-focus">
+        <div className="section-heading-row"><h2>LIVE ORDERS</h2><span className="micro">TODAY</span></div>
+        <p className="ledger-note">Order numbers, optional names, items and kitchen status only.</p>
+        <div className="ledger compact-ledger">{ledger.length?ledger.map((o:any)=><article className="ticket compact-ticket" key={o.id}>
+          <div className="ticket-head"><h3>#{String(o.order_number).padStart(3,'0')}</h3>{o.customer_public_name&&<span>{o.customer_public_name}</span>}</div>
+          {(o.items||[]).map((x:any,i:number)=><div className="ledger-line" key={i}><strong>{x.quantity} × {x.name}</strong>{x.modifiers?.length>0&&<div className="ledger-mods">{x.modifiers.map((m:any,j:number)=><span key={j}>{m.display||modifierDisplay(m.group,m.name)}</span>)}</div>}</div>)}
+          <div className="ticket-status">{o.fulfillment_status.replace('_',' ').toUpperCase()}{o.fulfillment_status==='ready'?' ✓':''}</div>
+        </article>):<p className="small">Nothing on the board yet.</p>}</div>
+      </aside>
+    </div>
+
+    <section id="order" className="order-section">
+      <div className="section-heading-row"><h2>YOUR ORDER</h2><span className="micro">CASH AT PICKUP</span></div>
+      <div className="order-zone compact-order-zone">
+        <div className="chalk-panel compact-panel"><h2>TICKET</h2>{!cart.length&&<p className="small">Choose an item from the menu above.</p>}{cart.map(i=><div className="cart-row" key={i.key}><div className="row-line"><strong>{i.quantity} × {i.name}</strong><span>{money((i.base_price_cents+i.choices.reduce((s,c)=>s+c.price_cents,0))*i.quantity)}</span></div>{i.choices.length>0&&<div className="modifier-summary">{i.choices.map(c=><span key={c.optionId}>{modifierDisplay(c.groupName,c.optionName)}</span>)}</div>}{i.notes&&<div className="small">NOTE: {i.notes}</div>}<button className="remove" onClick={()=>setCart(v=>v.filter(x=>x.key!==i.key))}>ERASE ITEM</button></div>)}<div className="total"><span>TOTAL</span><span>{money(total)}</span></div></div>
+
+        <form className="chalk-panel compact-panel" onSubmit={submit}><h2>PICKUP</h2><div className="checkout-grid"><div className="field"><label>First name</label><input required name="firstName" maxLength={40}/></div><div className="field"><label>Last name / initial</label><input name="lastName" maxLength={40}/></div><div className="field"><label>Phone</label><input required name="phone" type="tel"/></div><div className="field"><label>Pickup</label><select name="pickupType" defaultValue="asap"><option value="asap">ASAP</option><option value="scheduled">Schedule pickup</option></select></div><div className="field full"><label>Pickup time (optional)</label><input name="pickupTime" placeholder="Example: 6:30 PM"/></div><div className="field full"><label>Order notes</label><textarea name="notes" rows={2} maxLength={500}/></div></div>
+          <fieldset className="ledger-choice"><legend>Put your name on the live order board?</legend><label><input required type="radio" name="showNameOnLedger" value="yes"/> YES · FIRST NAME + LAST INITIAL</label><label><input required type="radio" name="showNameOnLedger" value="no"/> NO · ORDER NUMBER ONLY</label></fieldset>
+          <label className="allergy"><input required name="allergyAck" type="checkbox"/><span>I understand I should tell No Problemo about any food allergies and call for allergy-sensitive orders.</span></label>
+          <button className="chalk-btn accent order-submit" disabled={!cart.length||!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false} type="submit">PLACE CASH ORDER · {money(total)}</button>
+          {(!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false)&&<p className="danger">{settings?.currentlyOpen===false?'WE ARE CURRENTLY CLOSED — YOUR CART WILL STAY HERE.':'ONLINE ORDERS PAUSED — PLEASE CALL OR COME SEE US.'}</p>}{msg&&<p>{msg}</p>}
+        </form>
+      </div>
+    </section>
+
+    {status&&<section className="chalk-panel status-panel"><h2>ORDER #{String(status.order_number).padStart(3,'0')}</h2><p className="micro">{money(status.total_cents)} · PAY CASH AT PICKUP</p><Status status={status.fulfillment_status}/></section>}
+
+    <footer className="footer compact-footer"><p>{settings?.address||'813 Purchase Street, New Bedford, MA 02740'} · <a href={`tel:${settings?.phone||'508-984-1081'}`}>{settings?.phone||'508-984-1081'}</a> · {settings?.cashOnly?'CASH ONLY':''}{settings?.atmAvailable?' · ATM INSIDE':''}</p><a className="chalk-btn" href="https://maps.google.com/?q=813+Purchase+Street+New+Bedford+MA+02740">DIRECTIONS</a></footer>
+  </div>
+
+  {selected&&<ItemModal item={selected} displayName={displayName(selected)} onClose={()=>setSelected(null)} onAdd={add}/>} 
+  {count>0&&<div className="mobile-cart"><button className="chalk-btn accent" onClick={()=>document.getElementById('order')?.scrollIntoView({behavior:'smooth'})}>{count} ITEM{count!==1?'S':''} · {money(total)} · VIEW ORDER</button></div>}
+  </main>;
+}
+
+function Status({status}:{status:string}){const steps=['new','cooking','ready','picked_up'];const labels=['ORDER IN','COOKING','READY','PICKED UP'];const idx=status==='accepted'?0:steps.indexOf(status);return <div className="status-track">{labels.map((l,i)=><span className={`status-step ${i<=idx?'active':''}`} key={l}>{l}</span>)}</div>}
+
+function ItemModal({item,displayName,onClose,onAdd}:{item:MenuItem;displayName:string;onClose:()=>void;onAdd:(i:MenuItem,c:CartChoice[],q:number,n:string)=>void}){
+  const [selected,setSelected]=useState<Record<string,string[]>>({}),[q,setQ]=useState(1),[notes,setNotes]=useState('');
+  const choices=item.modifier_groups.flatMap(g=>(selected[g.id]||[]).map(id=>{const o=g.options.find(x=>x.id===id)!;return {groupId:g.id,groupName:g.name,optionId:o.id,optionName:o.name,price_cents:o.price_cents}}));
+  const price=(item.price_cents+choices.reduce((s,c)=>s+c.price_cents,0))*q;
+  function toggle(g:any,id:string){
+    setSelected(v=>{
+      const curr=v[g.id]||[];
+      if(g.selection_type==='single')return {...v,[g.id]:[id]};
+      const next=curr.includes(id)?curr.filter(x=>x!==id):(g.max_select&&curr.length>=g.max_select?curr:[...curr,id]);
+      return {...v,[g.id]:next};
+    });
+  }
+  return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><div className="modal" role="dialog" aria-modal="true"><button className="close" onClick={onClose}>×</button><h2>{displayName}</h2><p>{item.description}</p><strong>{money(item.price_cents)}</strong>{item.modifier_groups.map(g=><div className="modifier" key={g.id}><h4>{g.name}{g.required?' *':''}</h4>{g.options.map(o=><label className="choice" key={o.id}><input type={g.selection_type==='single'?'radio':'checkbox'} name={g.id} checked={(selected[g.id]||[]).includes(o.id)} onChange={()=>toggle(g,o.id)}/><span>{o.name}{o.price_cents?` (+${money(o.price_cents)})`:''}</span></label>)}</div>)}<div className="modifier"><label>Item note</label><textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={300} rows={2}/></div><div className="qty"><button onClick={()=>setQ(Math.max(1,q-1))}>−</button><strong>{q}</strong><button onClick={()=>setQ(Math.min(20,q+1))}>+</button></div><button className="chalk-btn accent" onClick={()=>onAdd(item,choices,q,notes)}>ADD TO ORDER · {money(price)}</button></div></div>;
+}
