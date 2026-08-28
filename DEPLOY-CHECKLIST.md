@@ -1,0 +1,24 @@
+# No Problemo Launch Checklist
+
+- [ ] Replace `public/noprobs.avif` with the final approved chalkboard background if different from the included fallback.
+- [ ] Confirm logo presentation on real phones.
+- [ ] Create Supabase project.
+- [ ] Run `supabase/schema.sql`.
+- [ ] Run `supabase/seed.sql`.
+- [ ] Create first Supabase Auth admin user.
+- [ ] Insert that user's UUID into `admin_users`.
+- [ ] Add Vercel environment variables.
+- [ ] Deploy from GitHub.
+- [ ] Attach final domain.
+- [ ] Update `NEXT_PUBLIC_SITE_URL` and redeploy.
+- [ ] Confirm current menu prices with No Problemo staff.
+- [ ] Confirm Sunday and holiday hours with staff.
+- [ ] Test all item modifier combinations staff actually allow.
+- [ ] Place at least 10 test orders.
+- [ ] Verify public ledger privacy.
+- [ ] Verify kitchen status flow.
+- [ ] Verify paid and picked-up remain separate.
+- [ ] Test pause ordering / force closed.
+- [ ] Test sold-out item behavior.
+- [ ] Add durable production rate limiting before heavy promotion.
+- [ ] Submit sitemap to search engines.

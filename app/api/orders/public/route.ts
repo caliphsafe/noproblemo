@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server';import {adminSupabase} from '@/lib/supabase';export const dynamic='force-dynamic';
+export async function GET(){try{const db=adminSupabase();const {data,error}=await db.from('public_order_ledger').select('*').order('created_at',{ascending:true}).limit(60);if(error)throw error;return NextResponse.json((data||[]).map((x:any)=>({id:x.order_id,...x})))}catch(e:any){return NextResponse.json({error:e.message},{status:500})}}
