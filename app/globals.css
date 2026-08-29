@@ -51,3 +51,106 @@ h1,h2,h3,.price,.chalk-btn,.ticket-status,.micro{ text-shadow:.45px .2px 0 rgba(
 }
 
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* 43 BUILD HYBRID CHALK PASS — organized layout + distressed heavy chalk */
+:root{--chalk-border-opacity:.78}
+
+/* Keep the board calm. The chalk is the interface. */
+.board:after{display:none}
+
+/* Stronger, cleaner hierarchy lines. */
+.section-heading-row:after,.category-head:after,.compact-item-list:before,.order-section:before,.footer:before,.modifier:before,.admin-line-item:before{
+  height:12px;opacity:.78;background-size:100% 100%;transform:none
+}
+.section-heading-row:after{bottom:-9px;opacity:.88}
+.category-head:after{margin-top:10px;opacity:.7}
+.compact-item-list:before{opacity:.45;height:9px}
+
+/* Distressed frames: straight and organized, but visibly chalk. */
+.menu-stage,.ticket,.chalk-panel,.modal,.admin-order,.ledger-choice{
+  position:relative;
+  border:0;
+}
+.menu-stage:before,.ticket:before,.chalk-panel:after,.modal:after,.admin-order:before,.ledger-choice:after{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:url('/chalk-frame.svg') center/100% 100% no-repeat;
+  opacity:var(--chalk-border-opacity);
+  z-index:0;
+}
+.menu-stage>* ,.ticket>* ,.chalk-panel>* ,.modal>* ,.admin-order>* ,.ledger-choice>*{position:relative;z-index:1}
+
+.menu-stage{padding:18px 18px 15px}
+.ticket{padding:12px 13px 11px;margin-bottom:10px;transform:none}
+.ticket:after{display:none}
+.chalk-panel{padding:16px 16px 14px;background:rgba(9,20,15,.08)}
+.chalk-panel:before{display:none}
+.ledger-choice{padding:12px 12px 10px;margin:12px 0 9px}
+.ledger-choice:before{display:none}
+.ledger-choice:after{display:block;height:auto;background:url('/chalk-frame.svg') center/100% 100% no-repeat;opacity:.45}
+
+/* Menu stays compact and aligned. */
+.menu-browser{grid-template-columns:170px minmax(0,1fr);gap:20px}
+.category-nav{gap:3px;padding-right:12px}
+.category-nav:after{width:14px;opacity:.55}
+.category-nav button{padding:7px 5px}
+.category-nav button:after{height:8px;opacity:.2}
+.category-nav button.active:after{opacity:.75}
+.menu-item{padding:10px 5px 12px}
+.menu-item:after{height:9px;opacity:.36;transform:none}
+.menu-item:nth-child(3n+2):after{transform:none;opacity:.32}
+.menu-item:hover:after,.menu-item:focus-visible:after{opacity:.72}
+.menu-item h3{font-size:1.12rem}
+.desc{font-size:.88rem;line-height:1.18}
+
+/* Ledger = readable chalk tickets, not scattered notes. */
+.ledger{gap:10px}
+.ticket:nth-child(3n+1),.ticket:nth-child(3n+2){--ticket-tilt:0deg}
+.ticket-head{margin-bottom:6px}
+.ledger-line{margin:5px 0;line-height:1.18}
+.ticket-status{margin-top:7px}
+
+/* Checkout/cart retain boxes, with rough chalk edges. */
+.order-zone{gap:20px}
+.cart-row:after{height:8px;opacity:.4}
+input,textarea,select{background-size:100% 9px}
+.chalk-btn{min-height:42px;padding:10px 14px 12px}
+.chalk-btn:before,.chalk-btn:after{height:9px;opacity:.82}
+
+/* Modal becomes a framed chalkboard panel instead of loose lines. */
+.modal{padding:19px 20px;background-color:#13231b}
+.modal:before{display:none}
+.modal:after{display:block;height:auto;background:url('/chalk-frame.svg') center/100% 100% no-repeat;opacity:.9}
+.modifier:before{height:9px;opacity:.5}
+
+/* Admin: operationally organized with matching chalk frames. */
+.admin-order{padding:12px 12px 10px;margin-bottom:12px}
+.admin-order:after{display:none}
+.admin-col:before{height:11px;opacity:.75}
+.admin-table tr{background-size:100% 8px}
+.admin-tabs button:after,.admin-actions button:after,.admin-table button:after{height:8px;opacity:.62}
+
+@media(max-width:900px){
+  .menu-stage{padding:15px}
+  .ticket{padding:11px 12px}
+  .chalk-panel{padding:14px}
+}
+
+@media(max-width:640px){
+  /* Preserve the upgraded mobile category experience. */
+  .category-nav{padding-top:8px;padding-bottom:11px;gap:15px}
+  .category-nav button{padding:7px 3px 9px}
+  .category-nav button:after{height:9px;opacity:.28}
+  .category-nav button.active:after{opacity:.9}
+  .menu-stage{min-height:310px;padding:13px 12px 11px}
+  .category-head:after{height:10px;margin-top:8px}
+  .menu-item{padding:9px 3px 11px}
+  .menu-item:after{height:8px;opacity:.4}
+  .ticket{padding:10px 11px;margin-bottom:8px}
+  .chalk-panel{padding:12px 11px 11px}
+  .ledger-choice{padding:10px 9px 8px}
+  .modal{padding:14px 14px 13px}
+  .mobile-cart button{min-height:44px}
+}
