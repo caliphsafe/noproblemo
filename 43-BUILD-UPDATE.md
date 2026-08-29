@@ -1,25 +1,28 @@
-# No Problemo — 43 Build Update
+# 43 BUILD UPDATE — CHALKBOARD UX PASS
 
-This update simplifies the customer-facing experience around the two things that matter most: ordering from the menu and seeing the live kitchen ledger.
+This update pushes the public ordering experience away from conventional web cards and boxes and toward an actual hand-drawn restaurant chalkboard.
 
-## What changed
+## Public experience
 
-- Compact chalkboard-first layout with the decorative dot overlay removed.
-- No Problemo logo reduced to roughly 30% of its previous desktop footprint.
-- Menu and live ledger are the primary desktop workspace; the ledger stays visible while browsing the menu.
-- Vertical category navigation shows one menu category at a time instead of stacking the entire menu.
-- Mobile keeps the same vertical category-navigation concept in a narrow left rail so the item list stays compact.
-- Full contextual item names are shown throughout ordering, the public ledger, admin order board, history, and manual-order list. Examples: `Regular Torta`, `Regular Burrito`, `Beef Taco`.
-- New orders snapshot the full contextual item name so kitchen tickets stay understandable even if the menu later changes.
-- Existing ledger/admin orders are also enriched at the API layer when their original menu item still exists.
-- Public checkout now requires the customer to choose whether their name appears on the live ledger. If they choose no, only the order number appears.
-- Public ledger now includes safe preparation modifiers such as `ADD: guacamole`, `REMOVE: cheese`, and choice information. Phone numbers, customer notes, and item notes remain private.
-- Admin kitchen cards emphasize full item names, additions/removals/modifiers, item notes, and order notes.
+- Replaced most straight CSS borders with reusable distressed chalk-stroke SVG rules.
+- Removed decorative background dots completely.
+- Reduced the logo again for a faster, menu-first first screen.
+- Desktop keeps the efficient vertical category navigator.
+- Mobile now uses a horizontal, swipeable category rail with previous/next chalk arrows and direct swipe gestures on the menu itself.
+- Menu rows use irregular chalk separators instead of clean lines or cards.
+- Ledger orders no longer sit inside perfect rectangles; they are separated by rough chalk strokes.
+- Checkout fields use chalk underlines instead of standard boxed inputs.
+- Radio buttons and checkboxes use hand-drawn marks.
+- Buttons are rendered as chalk writing with rough stroke lines instead of conventional button boxes.
+- The item customization modal now reads more like an emphasized section of the chalkboard than a floating web card.
 
-## Database note
+## Existing ordering improvements retained
 
-No new table or column is required for this update. The existing `customer_public_name` field accepts an empty string when the customer opts out of showing their name. The updated APIs enrich item names and modifier group labels server-side.
+- Full menu item names are preserved across cart, ledger and admin tickets (for example, `Regular Torta`, not simply `Regular`).
+- Public ledger still supports the customer's choice to show first name + last initial or order number only.
+- Modifier details including additions/removals are preserved for the customer cart, public ledger where safe, and admin kitchen board.
+- Admin remains operationally dense while inheriting the chalk visual language.
 
-## Deploy
+## Deployment
 
-Upload/commit the contents of this folder over the current project, then redeploy in Vercel. Your existing Supabase environment variables and database remain in place.
+No new database migration is required for this visual/mobile pass. Replace the project files with this ZIP contents and redeploy through Vercel.

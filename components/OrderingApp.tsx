@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {createClient} from '@supabase/supabase-js';
 import type {CartItem,MenuCategory,MenuItem,PublicOrder,CartChoice} from '@/lib/types';
 import {fullMenuItemName,modifierDisplay} from '@/lib/menu-names';
@@ -17,6 +17,7 @@ export default function OrderingApp(){
   const [cart,setCart]=useState<CartItem[]>([]);
   const [status,setStatus]=useState<any>(null);
   const [msg,setMsg]=useState('');
+  const touchStartX=useRef<number|null>(null);
 
   const load=async()=>{
     const [m,s,l]=await Promise.all([
@@ -54,10 +55,27 @@ export default function OrderingApp(){
   const total=useMemo(()=>cart.reduce((s,i)=>s+(i.base_price_cents+i.choices.reduce((x,c)=>x+c.price_cents,0))*i.quantity,0),[cart]);
   const count=cart.reduce((s,i)=>s+i.quantity,0);
   const activeCategory=menu.find(c=>c.id===activeCategoryId)||menu[0];
+  const activeIndex=Math.max(0,menu.findIndex(c=>c.id===activeCategory?.id));
 
   function displayName(item:MenuItem){
     const category=menu.find(c=>c.id===item.category_id);
     return fullMenuItemName(item.name,category?.name);
+  }
+
+  function moveCategory(delta:number){
+    if(!menu.length)return;
+    const next=(activeIndex+delta+menu.length)%menu.length;
+    setActiveCategoryId(menu[next].id);
+    requestAnimationFrame(()=>document.querySelector(`[data-category-id="${menu[next].id}"]`)?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}));
+  }
+
+  function onTouchStart(e:React.TouchEvent){touchStartX.current=e.touches[0]?.clientX??null}
+  function onTouchEnd(e:React.TouchEvent){
+    if(touchStartX.current===null)return;
+    const end=e.changedTouches[0]?.clientX??touchStartX.current;
+    const delta=end-touchStartX.current;
+    touchStartX.current=null;
+    if(Math.abs(delta)>55)moveCategory(delta<0?1:-1);
   }
 
   function add(item:MenuItem,choices:CartChoice[],quantity:number,notes:string){
@@ -89,14 +107,18 @@ export default function OrderingApp(){
 
     <div className="ordering-workspace">
       <section id="menu" className="menu-focus">
-        <div className="section-heading-row"><h1>MENU</h1><span className="micro">TAP AN ITEM</span></div>
+        <div className="section-heading-row"><h1>MENU</h1><span className="micro desktop-hint">TAP AN ITEM</span><span className="micro mobile-hint">SWIPE OR TAP A CATEGORY</span></div>
         <div className="menu-browser">
           <nav className="category-nav" aria-label="Menu categories">
-            {menu.map(c=><button key={c.id} className={c.id===activeCategory?.id?'active':''} onClick={()=>setActiveCategoryId(c.id)}><span>{c.name}</span><small>{c.items.length}</small></button>)}
+            {menu.map(c=><button data-category-id={c.id} key={c.id} className={c.id===activeCategory?.id?'active':''} onClick={()=>setActiveCategoryId(c.id)}><span>{c.name}</span><small>{c.items.length}</small></button>)}
           </nav>
-          <div className="menu-stage">
+          <div className="menu-stage" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {activeCategory?<section className="category active-category">
-              <div className="category-head"><h2>{activeCategory.name}</h2>{activeCategory.description&&<p>{activeCategory.description}</p>}</div>
+              <div className="category-head">
+                <button type="button" className="category-arrow prev" aria-label="Previous category" onClick={()=>moveCategory(-1)}>‹</button>
+                <div><h2>{activeCategory.name}</h2>{activeCategory.description&&<p>{activeCategory.description}</p>}<div className="mobile-category-count micro">{activeIndex+1} / {menu.length}</div></div>
+                <button type="button" className="category-arrow next" aria-label="Next category" onClick={()=>moveCategory(1)}>›</button>
+              </div>
               <div className="compact-item-list">{activeCategory.items.map(i=><button key={i.id} className={`menu-item ${i.sold_out?'sold':''}`} disabled={i.sold_out} onClick={()=>setSelected(i)}><div className="item-title-row"><h3>{displayName(i)}{i.sold_out?' · SOLD OUT':''}</h3><span className="price">{money(i.price_cents)}</span></div>{i.description&&<span className="desc">{i.description}</span>}</button>)}</div>
             </section>:<p>Loading menu…</p>}
           </div>
@@ -109,7 +131,7 @@ export default function OrderingApp(){
         <div className="ledger compact-ledger">{ledger.length?ledger.map((o:any)=><article className="ticket compact-ticket" key={o.id}>
           <div className="ticket-head"><h3>#{String(o.order_number).padStart(3,'0')}</h3>{o.customer_public_name&&<span>{o.customer_public_name}</span>}</div>
           {(o.items||[]).map((x:any,i:number)=><div className="ledger-line" key={i}><strong>{x.quantity} × {x.name}</strong>{x.modifiers?.length>0&&<div className="ledger-mods">{x.modifiers.map((m:any,j:number)=><span key={j}>{m.display||modifierDisplay(m.group,m.name)}</span>)}</div>}</div>)}
-          <div className="ticket-status">{o.fulfillment_status.replace('_',' ').toUpperCase()}{o.fulfillment_status==='ready'?' ✓':''}</div>
+          <div className={`ticket-status status-${o.fulfillment_status}`}>{o.fulfillment_status.replace('_',' ').toUpperCase()}{o.fulfillment_status==='ready'?' ✓':''}</div>
         </article>):<p className="small">Nothing on the board yet.</p>}</div>
       </aside>
     </div>
@@ -120,7 +142,7 @@ export default function OrderingApp(){
         <div className="chalk-panel compact-panel"><h2>TICKET</h2>{!cart.length&&<p className="small">Choose an item from the menu above.</p>}{cart.map(i=><div className="cart-row" key={i.key}><div className="row-line"><strong>{i.quantity} × {i.name}</strong><span>{money((i.base_price_cents+i.choices.reduce((s,c)=>s+c.price_cents,0))*i.quantity)}</span></div>{i.choices.length>0&&<div className="modifier-summary">{i.choices.map(c=><span key={c.optionId}>{modifierDisplay(c.groupName,c.optionName)}</span>)}</div>}{i.notes&&<div className="small">NOTE: {i.notes}</div>}<button className="remove" onClick={()=>setCart(v=>v.filter(x=>x.key!==i.key))}>ERASE ITEM</button></div>)}<div className="total"><span>TOTAL</span><span>{money(total)}</span></div></div>
 
         <form className="chalk-panel compact-panel" onSubmit={submit}><h2>PICKUP</h2><div className="checkout-grid"><div className="field"><label>First name</label><input required name="firstName" maxLength={40}/></div><div className="field"><label>Last name / initial</label><input name="lastName" maxLength={40}/></div><div className="field"><label>Phone</label><input required name="phone" type="tel"/></div><div className="field"><label>Pickup</label><select name="pickupType" defaultValue="asap"><option value="asap">ASAP</option><option value="scheduled">Schedule pickup</option></select></div><div className="field full"><label>Pickup time (optional)</label><input name="pickupTime" placeholder="Example: 6:30 PM"/></div><div className="field full"><label>Order notes</label><textarea name="notes" rows={2} maxLength={500}/></div></div>
-          <fieldset className="ledger-choice"><legend>Put your name on the live order board?</legend><label><input required type="radio" name="showNameOnLedger" value="yes"/> YES · FIRST NAME + LAST INITIAL</label><label><input required type="radio" name="showNameOnLedger" value="no"/> NO · ORDER NUMBER ONLY</label></fieldset>
+          <fieldset className="ledger-choice"><legend>Put your name on the live order board?</legend><label><input required type="radio" name="showNameOnLedger" value="yes"/><span>YES · FIRST NAME + LAST INITIAL</span></label><label><input required type="radio" name="showNameOnLedger" value="no"/><span>NO · ORDER NUMBER ONLY</span></label></fieldset>
           <label className="allergy"><input required name="allergyAck" type="checkbox"/><span>I understand I should tell No Problemo about any food allergies and call for allergy-sensitive orders.</span></label>
           <button className="chalk-btn accent order-submit" disabled={!cart.length||!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false} type="submit">PLACE CASH ORDER · {money(total)}</button>
           {(!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false)&&<p className="danger">{settings?.currentlyOpen===false?'WE ARE CURRENTLY CLOSED — YOUR CART WILL STAY HERE.':'ONLINE ORDERS PAUSED — PLEASE CALL OR COME SEE US.'}</p>}{msg&&<p>{msg}</p>}

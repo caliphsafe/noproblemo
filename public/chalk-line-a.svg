@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 22" preserveAspectRatio="none">
+  <filter id="rough"><feTurbulence baseFrequency="0.013 0.38" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/></filter>
+  <path d="M5 11 C120 7 210 16 325 10 S555 7 690 12 S860 15 995 9" fill="none" stroke="#f5f1df" stroke-width="3.4" stroke-linecap="round" opacity=".72" filter="url(#rough)"/>
+  <path d="M8 14 C160 10 260 18 410 13 S720 9 990 14" fill="none" stroke="#f5f1df" stroke-width="1.1" stroke-linecap="round" opacity=".28"/>
+</svg>
