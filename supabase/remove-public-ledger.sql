@@ -1,12 +1,23 @@
--- NO PROBLEMO — remove the legacy public order ledger
--- Run this ONCE in Supabase if your existing project was created with an earlier 43 Build.
--- Customer order status remains available privately through /api/orders/status.
+-- No Problemo: legacy public order ledger removal.
+-- Run once if public_order_ledger still exists in an older deployment.
+-- This does NOT remove orders, order_items, modifiers, or private order status.
 
-drop trigger if exists trg_ledger_order on public.orders;
-drop trigger if exists trg_ledger_item on public.order_items;
-drop function if exists public.trg_refresh_order_from_order();
-drop function if exists public.trg_refresh_order_from_item();
-drop function if exists public.refresh_public_order(uuid);
-drop policy if exists "public read ledger" on public.public_order_ledger;
-alter publication supabase_realtime drop table if exists public.public_order_ledger;
-drop table if exists public.public_order_ledger;
+DROP TRIGGER IF EXISTS trg_ledger_order ON public.orders;
+DROP TRIGGER IF EXISTS trg_ledger_item ON public.order_items;
+
+DROP FUNCTION IF EXISTS public.trg_refresh_order_from_order();
+DROP FUNCTION IF EXISTS public.trg_refresh_order_from_item();
+DROP FUNCTION IF EXISTS public.refresh_public_order(uuid);
+
+DROP POLICY IF EXISTS "public read ledger" ON public.public_order_ledger;
+
+DO $$
+BEGIN
+  IF to_regclass('public.public_order_ledger') IS NOT NULL THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime DROP TABLE public.public_order_ledger';
+  END IF;
+EXCEPTION
+  WHEN undefined_object THEN NULL;
+END $$;
+
+DROP TABLE IF EXISTS public.public_order_ledger;
