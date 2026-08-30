@@ -4,4 +4,3 @@ export type MenuItem={id:string;category_id:string;name:string;description:strin
 export type MenuCategory={id:string;name:string;description:string;sort_order:number;items:MenuItem[]};
 export type CartChoice={groupId:string;groupName:string;optionId:string;optionName:string;price_cents:number};
 export type CartItem={key:string;menu_item_id:string;name:string;base_price_cents:number;quantity:number;choices:CartChoice[];notes:string};
-export type PublicOrder={id:string;order_number:number;customer_public_name:string;fulfillment_status:string;created_at:string;items:{name:string;quantity:number;modifiers?:{name:string;group?:string;display?:string}[]}[]};

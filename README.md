@@ -1,6 +1,8 @@
 # No Problemo — Interactive Chalkboard Ordering System
 
-A 43 Build for No Problemo, 813 Purchase Street, New Bedford, MA 02740. The public experience is an interactive chalkboard menu with cash-at-pickup ordering, a live public order ledger, private order tracking, and a Supabase-backed kitchen/admin dashboard.
+This version intentionally has **no public order ledger**. Customers receive a private order-status view tied to their secure order token; staff see the full operational order board in `/admin`.
+
+A 43 Build for No Problemo, 813 Purchase Street, New Bedford, MA 02740. The public experience is an interactive chalkboard menu with cash-at-pickup ordering, private customer order tracking, and a Supabase-backed kitchen/admin dashboard.
 
 ## Included
 
@@ -9,7 +11,6 @@ A 43 Build for No Problemo, 813 Purchase Street, New Bedford, MA 02740. The publ
 - Cash-only checkout — no payment processor
 - Server-authoritative pricing in integer cents
 - Order snapshots so historical totals do not change when menu prices change
-- Public live order ledger with only safe public fields
 - Private customer order token stored in the browser
 - Separate fulfillment and payment states
 - Supabase Auth protected `/admin`
@@ -19,7 +20,7 @@ A 43 Build for No Problemo, 813 Purchase Street, New Bedford, MA 02740. The publ
 - Menu price, description, active/sold-out and sort-order management
 - Modifier price/availability management
 - Restaurant hours, wait-time, ordering pause, open override, announcement, phone and address settings
-- Supabase Realtime subscriptions for ledger/menu/settings with a low-frequency safety refresh
+- Supabase Realtime subscriptions for menu/settings with a low-frequency safety refresh
 - RLS policies and service-role-only server operations for private order data
 - SEO/AEO/GEO metadata, Restaurant schema, sitemap and robots
 - Accessibility and reduced-motion support
@@ -115,8 +116,6 @@ Before accepting real orders, test all of these on both iPhone-size mobile and d
 
 1. Add a burrito with modifiers and confirm client total.
 2. Submit an order and confirm the database total matches exactly.
-3. Confirm the public ledger shows only order number, public name, item names/quantities and public fulfillment status.
-4. Confirm phone, customer notes, admin notes, customer token and payment state never appear on the public ledger.
 5. Refresh the customer's page and confirm the saved token restores order status.
 6. Change order New → Cooking → Ready from `/admin`; confirm the customer status changes without manual refresh.
 7. Toggle Paid independently of Picked Up.
@@ -125,7 +124,7 @@ Before accepting real orders, test all of these on both iPhone-size mobile and d
 10. Force Closed and Force Open from settings.
 11. Change wait time and confirm the public board updates.
 12. Create a phone/walk-in order from the admin screen.
-13. Cancel an order and verify it leaves the public active ledger but remains in order history.
+13. Cancel an order and verify it remains in order history.
 14. Archive an old order and verify it remains stored.
 15. Test a failed/malicious request with a fake item price; the server must ignore it and calculate from the database.
 16. Test keyboard navigation, focus visibility and reduced-motion mode.
@@ -135,7 +134,7 @@ Before accepting real orders, test all of these on both iPhone-size mobile and d
 - Public order creation runs through a Next.js server route using the service role; the browser never receives the service-role key.
 - The client submits menu-item IDs, modifier-option IDs and quantities — not trusted prices.
 - Server code re-fetches menu and modifier prices, checks availability and checks modifier-to-item relationships.
-- Private customer details are never queried from the public ledger table.
+- Private customer details are only exposed through authenticated admin views or a valid private customer token.
 - Admin API endpoints validate the Supabase access token and then verify membership in `admin_users`.
 - In-memory request limiting is included as a first layer. For a high-volume production rollout, connect Vercel Firewall/Rate Limiting or Upstash Redis so rate limits are durable across serverless instances.
 - For SMS notifications, add a dedicated transactional SMS provider later; phone numbers are already captured privately.
@@ -147,10 +146,10 @@ Run the system in “staff test mode” for several shifts before advertising on
 ## File map
 
 - `app/page.tsx` — public ordering page
-- `components/OrderingApp.tsx` — menu/cart/checkout/ledger/status experience
+- `components/OrderingApp.tsx` — menu/cart/checkout/private status experience
 - `app/admin/page.tsx` — secure admin entry
 - `components/AdminApp.tsx` — kitchen/menu/settings/manual-order dashboard
-- `app/api/orders/*` — public order creation/status/ledger APIs
+- `app/api/orders/*` — order creation and private status APIs
 - `app/api/admin/*` — protected operations
 - `lib/hours.ts` — America/New_York open/closed logic
 - `supabase/schema.sql` — production database schema, RLS and realtime publication
@@ -161,3 +160,8 @@ Run the system in “staff test mode” for several shifts before advertising on
 ## No online payment
 
 The system intentionally has no Stripe, Square or card flow. Every order communicates **PAY CASH AT PICKUP** and payment status is controlled manually by restaurant staff.
+
+
+### Updating an existing Supabase project
+
+If the project was created from an earlier version that included `public_order_ledger`, run `supabase/remove-public-ledger.sql` once. This removes the legacy public ledger table and triggers without affecting private customer order status or the admin kitchen workflow.

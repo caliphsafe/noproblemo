@@ -76,11 +76,7 @@ create table public.restaurant_settings(
 create table public.public_restaurant_settings(
   id int primary key check(id=1), settings jsonb not null default '{}'::jsonb, updated_at timestamptz not null default now()
 );
-create table public.public_order_ledger(
-  order_id uuid primary key, order_number int not null, customer_public_name text not null,
-  fulfillment_status fulfillment_status not null, items jsonb not null default '[]'::jsonb, created_at timestamptz not null,
-  updated_at timestamptz not null default now()
-);
+
 
 create or replace function public.is_admin() returns boolean language sql stable security definer set search_path=public as $$
   select exists(select 1 from public.admin_users where user_id=auth.uid())
@@ -90,25 +86,10 @@ create or replace function public.sync_public_settings() returns trigger languag
 begin insert into public.public_restaurant_settings(id,settings,updated_at) values(1,new.public_settings,now()) on conflict(id) do update set settings=excluded.settings,updated_at=now(); return new; end $$;
 create trigger trg_sync_public_settings after insert or update of public_settings on public.restaurant_settings for each row execute function public.sync_public_settings();
 
-create or replace function public.refresh_public_order(p_order uuid) returns void language plpgsql security definer set search_path=public as $$
-declare o public.orders%rowtype; j jsonb; begin
- select * into o from public.orders where id=p_order;
- if not found then delete from public.public_order_ledger where order_id=p_order; return; end if;
- if o.archived or o.fulfillment_status='cancelled' then delete from public.public_order_ledger where order_id=p_order; return; end if;
- select coalesce(jsonb_agg(jsonb_build_object('name',item_name_snapshot,'quantity',quantity) order by id),'[]'::jsonb) into j from public.order_items where order_id=p_order;
- insert into public.public_order_ledger(order_id,order_number,customer_public_name,fulfillment_status,items,created_at,updated_at)
- values(o.id,o.order_number,o.customer_public_name,o.fulfillment_status,j,o.created_at,now())
- on conflict(order_id) do update set order_number=excluded.order_number,customer_public_name=excluded.customer_public_name,fulfillment_status=excluded.fulfillment_status,items=excluded.items,updated_at=now();
-end $$;
-create or replace function public.trg_refresh_order_from_order() returns trigger language plpgsql security definer set search_path=public as $$ begin perform public.refresh_public_order(new.id); return new; end $$;
-create or replace function public.trg_refresh_order_from_item() returns trigger language plpgsql security definer set search_path=public as $$ begin perform public.refresh_public_order(coalesce(new.order_id,old.order_id)); return coalesce(new,old); end $$;
-create trigger trg_ledger_order after insert or update on public.orders for each row execute function public.trg_refresh_order_from_order();
-create trigger trg_ledger_item after insert or update or delete on public.order_items for each row execute function public.trg_refresh_order_from_item();
-
 alter table public.admin_users enable row level security; alter table public.menu_categories enable row level security; alter table public.menu_items enable row level security;
 alter table public.modifier_groups enable row level security; alter table public.modifier_options enable row level security; alter table public.menu_item_modifier_groups enable row level security;
 alter table public.orders enable row level security; alter table public.order_items enable row level security; alter table public.order_item_modifiers enable row level security; alter table public.order_status_history enable row level security;
-alter table public.restaurant_settings enable row level security; alter table public.public_restaurant_settings enable row level security; alter table public.public_order_ledger enable row level security;
+alter table public.restaurant_settings enable row level security; alter table public.public_restaurant_settings enable row level security;
 
 create policy "public read categories" on public.menu_categories for select using(active=true);
 create policy "public read items" on public.menu_items for select using(active=true);
@@ -116,7 +97,6 @@ create policy "public read groups" on public.modifier_groups for select using(ac
 create policy "public read options" on public.modifier_options for select using(active=true);
 create policy "public read menu links" on public.menu_item_modifier_groups for select using(true);
 create policy "public read safe settings" on public.public_restaurant_settings for select using(true);
-create policy "public read ledger" on public.public_order_ledger for select using(true);
 
 create policy "admin all admin_users" on public.admin_users for all using(public.is_admin()) with check(public.is_admin());
 create policy "admin categories" on public.menu_categories for all using(public.is_admin()) with check(public.is_admin());
@@ -133,4 +113,3 @@ create policy "admin settings" on public.restaurant_settings for all using(publi
 -- Realtime-safe public tables. Run once; ignore duplicate-object errors if already added.
 alter publication supabase_realtime add table public.menu_items;
 alter publication supabase_realtime add table public.public_restaurant_settings;
-alter publication supabase_realtime add table public.public_order_ledger;

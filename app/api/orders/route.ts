@@ -9,7 +9,7 @@ import {fullMenuItemName} from '@/lib/menu-names';
 const S=z.object({
   firstName:z.string().trim().min(1).max(40),lastName:z.string().trim().max(40).optional().default(''),phone:z.string().trim().min(7).max(24),
   pickupType:z.enum(['asap','scheduled']),pickupTime:z.string().max(40).optional().nullable(),notes:z.string().max(500).optional().default(''),
-  allergyAck:z.literal(true),showNameOnLedger:z.boolean(),
+  allergyAck:z.literal(true),
   items:z.array(z.object({menu_item_id:z.string().uuid(),quantity:z.number().int().min(1).max(20),notes:z.string().max(300).optional().default(''),option_ids:z.array(z.string().uuid()).max(20)})).min(1).max(30)
 });
 
@@ -41,7 +41,7 @@ export async function POST(req:Request){
     }
     if(total<=0||total>200000)throw new Error('Invalid order total.');
     const token=crypto.randomBytes(32).toString('hex');
-    const publicName=body.showNameOnLedger?`${body.firstName}${body.lastName?` ${body.lastName.trim().charAt(0).toUpperCase()}.`:''}`:'';
+    const publicName='';
     const {data:order,error}=await db.from('orders').insert({customer_first_name:body.firstName,customer_last_name:body.lastName,customer_public_name:publicName,phone:body.phone,pickup_type:body.pickupType,pickup_time:body.pickupTime||null,customer_notes:body.notes,source:'web',subtotal_cents:total,total_cents:total,customer_token:token}).select('id,order_number,total_cents,fulfillment_status').single();
     if(error)throw error;
     for(const s of snapshots){

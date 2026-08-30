@@ -4,7 +4,8 @@
 - [ ] Confirm logo presentation on real phones.
 - [ ] Create Supabase project.
 - [ ] Run `supabase/schema.sql`.
-- [ ] Run `supabase/seed.sql`.
+- [ ] Run `supabase/seed.sql
+- [ ] If upgrading an older database, run `supabase/remove-public-ledger.sql` once.`.
 - [ ] Create first Supabase Auth admin user.
 - [ ] Insert that user's UUID into `admin_users`.
 - [ ] Add Vercel environment variables.
@@ -15,7 +16,6 @@
 - [ ] Confirm Sunday and holiday hours with staff.
 - [ ] Test all item modifier combinations staff actually allow.
 - [ ] Place at least 10 test orders.
-- [ ] Verify public ledger privacy.
 - [ ] Verify kitchen status flow.
 - [ ] Verify paid and picked-up remain separate.
 - [ ] Test pause ordering / force closed.

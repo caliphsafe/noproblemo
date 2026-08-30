@@ -52,3 +52,43 @@ input,textarea,select{border:2px solid rgba(245,241,223,.38)}
  .ledger{grid-template-columns:1fr}.section-heading-row h1,.section-heading-row h2{font-size:1.55rem}.checkout-grid,.admin-form{grid-template-columns:1fr}.field.full{grid-column:auto}
  .mobile-cart{display:block;position:fixed;left:8px;right:8px;bottom:8px;z-index:40}.mobile-cart button{width:100%;background:#132019}.footer{padding-bottom:76px}.admin-shell{padding:9px}.modal{padding:13px}
 }
+
+/* 43 Build — ledger removal / ordering-first refinement */
+.ordering-workspace{display:block;padding:16px 0 8px}
+.menu-focus{width:100%}
+.menu-browser{grid-template-columns:190px minmax(0,1fr);gap:18px}
+.menu-stage{min-width:0}
+.order-section{margin-top:10px}
+.order-zone{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:18px}
+.chalk-panel{background:rgba(4,10,7,.11)}
+.status-panel{max-width:760px;margin:14px auto 0}
+
+@media(max-width:900px){
+  .ordering-workspace{padding:10px 0 4px}
+  .menu-browser{grid-template-columns:1fr;gap:10px}
+  .category-nav{position:sticky;top:0;z-index:22}
+  .order-zone{grid-template-columns:1fr}
+  .order-section{margin-top:8px}
+}
+@media(max-width:640px){
+  .wrap{width:calc(100% - 18px)}
+  .hero{padding:8px 0 10px}
+  .compact-logo{width:min(115px,29vw)}
+  .hero-info{font-size:.58rem}
+  .hero-strip{font-size:.62rem}
+  .ordering-workspace{padding-top:7px}
+  .section-heading-row{margin-bottom:8px;padding-bottom:7px}
+  .menu-browser{gap:7px}
+  .category-nav{margin:0 -9px 4px;padding:6px 9px 9px}
+  .menu-stage{min-height:0}
+  .category-head{margin-bottom:4px}
+  .category-head h2{font-size:1.45rem}
+  .compact-item-list{padding-top:3px}
+  .menu-item{padding:7px 1px 10px}
+  .menu-item h3{font-size:.98rem}
+  .desc{font-size:.75rem}
+  .order-section{padding-top:14px}
+  .order-zone{gap:10px}
+  .chalk-panel{padding:12px}
+  .status-panel{margin-top:10px}
+}

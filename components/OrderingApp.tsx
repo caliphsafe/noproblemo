@@ -2,7 +2,7 @@
 
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {createClient} from '@supabase/supabase-js';
-import type {CartItem,MenuCategory,MenuItem,PublicOrder,CartChoice} from '@/lib/types';
+import type {CartItem,MenuCategory,MenuItem,CartChoice} from '@/lib/types';
 import {fullMenuItemName,modifierDisplay} from '@/lib/menu-names';
 
 const money=(c:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
@@ -11,7 +11,6 @@ type Settings={onlineOrderingEnabled:boolean;restaurantOpenOverride:string;curre
 export default function OrderingApp(){
   const [menu,setMenu]=useState<MenuCategory[]>([]);
   const [settings,setSettings]=useState<Settings|null>(null);
-  const [ledger,setLedger]=useState<PublicOrder[]>([]);
   const [selected,setSelected]=useState<MenuItem|null>(null);
   const [activeCategoryId,setActiveCategoryId]=useState('');
   const [cart,setCart]=useState<CartItem[]>([]);
@@ -22,12 +21,10 @@ export default function OrderingApp(){
   const load=async()=>{
     const [m,s,l]=await Promise.all([
       fetch('/api/menu',{cache:'no-store'}).then(r=>r.json()),
-      fetch('/api/settings',{cache:'no-store'}).then(r=>r.json()),
-      fetch('/api/orders/public',{cache:'no-store'}).then(r=>r.json())
+      fetch('/api/settings',{cache:'no-store'}).then(r=>r.json())
     ]);
     if(Array.isArray(m))setMenu(m);
     if(!s.error)setSettings(s);
-    if(Array.isArray(l))setLedger(l);
   };
 
   useEffect(()=>{
@@ -38,7 +35,6 @@ export default function OrderingApp(){
     if(url&&key){
       const rt=createClient(url,key,{auth:{persistSession:false}});
       channel=rt.channel('public-board')
-        .on('postgres_changes',{event:'*',schema:'public',table:'public_order_ledger'},()=>load())
         .on('postgres_changes',{event:'*',schema:'public',table:'menu_items'},()=>load())
         .on('postgres_changes',{event:'*',schema:'public',table:'public_restaurant_settings'},()=>load())
         .subscribe();
@@ -89,12 +85,12 @@ export default function OrderingApp(){
     const fd=new FormData(e.currentTarget);
     const payload={
       firstName:fd.get('firstName'),lastName:fd.get('lastName'),phone:fd.get('phone'),pickupType:fd.get('pickupType'),pickupTime:fd.get('pickupTime')||null,
-      notes:fd.get('notes'),allergyAck:fd.get('allergyAck')==='on',showNameOnLedger:fd.get('showNameOnLedger')==='yes',
+      notes:fd.get('notes'),allergyAck:fd.get('allergyAck')==='on',
       items:cart.map(i=>({menu_item_id:i.menu_item_id,quantity:i.quantity,notes:i.notes,option_ids:i.choices.map(c=>c.optionId)}))
     };
     const r=await fetch('/api/orders',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();
     if(!r.ok){setMsg(d.error||'Could not place order');return}
-    localStorage.setItem('noproblemo-order-token',d.token);setStatus(d);setCart([]);setMsg(`Order #${String(d.order_number).padStart(3,'0')} is on the board.`);load();
+    localStorage.setItem('noproblemo-order-token',d.token);setStatus(d);setCart([]);setMsg(`Order #${String(d.order_number).padStart(3,'0')} received.`);load();
   }
 
   return <main className="board"><div className="wrap">
@@ -125,15 +121,6 @@ export default function OrderingApp(){
         </div>
       </section>
 
-      <aside id="ledger" className="ledger-focus">
-        <div className="section-heading-row"><h2>LIVE ORDERS</h2><span className="micro">TODAY</span></div>
-        <p className="ledger-note">Order numbers, optional names, items and kitchen status only.</p>
-        <div className="ledger compact-ledger">{ledger.length?ledger.map((o:any)=><article className="ticket compact-ticket" key={o.id}>
-          <div className="ticket-head"><h3>#{String(o.order_number).padStart(3,'0')}</h3>{o.customer_public_name&&<span>{o.customer_public_name}</span>}</div>
-          {(o.items||[]).map((x:any,i:number)=><div className="ledger-line" key={i}><strong>{x.quantity} × {x.name}</strong>{x.modifiers?.length>0&&<div className="ledger-mods">{x.modifiers.map((m:any,j:number)=><span key={j}>{m.display||modifierDisplay(m.group,m.name)}</span>)}</div>}</div>)}
-          <div className={`ticket-status status-${o.fulfillment_status}`}>{o.fulfillment_status.replace('_',' ').toUpperCase()}{o.fulfillment_status==='ready'?' ✓':''}</div>
-        </article>):<p className="small">Nothing on the board yet.</p>}</div>
-      </aside>
     </div>
 
     <section id="order" className="order-section">
@@ -142,7 +129,6 @@ export default function OrderingApp(){
         <div className="chalk-panel compact-panel"><h2>TICKET</h2>{!cart.length&&<p className="small">Choose an item from the menu above.</p>}{cart.map(i=><div className="cart-row" key={i.key}><div className="row-line"><strong>{i.quantity} × {i.name}</strong><span>{money((i.base_price_cents+i.choices.reduce((s,c)=>s+c.price_cents,0))*i.quantity)}</span></div>{i.choices.length>0&&<div className="modifier-summary">{i.choices.map(c=><span key={c.optionId}>{modifierDisplay(c.groupName,c.optionName)}</span>)}</div>}{i.notes&&<div className="small">NOTE: {i.notes}</div>}<button className="remove" onClick={()=>setCart(v=>v.filter(x=>x.key!==i.key))}>ERASE ITEM</button></div>)}<div className="total"><span>TOTAL</span><span>{money(total)}</span></div></div>
 
         <form className="chalk-panel compact-panel" onSubmit={submit}><h2>PICKUP</h2><div className="checkout-grid"><div className="field"><label>First name</label><input required name="firstName" maxLength={40}/></div><div className="field"><label>Last name / initial</label><input name="lastName" maxLength={40}/></div><div className="field"><label>Phone</label><input required name="phone" type="tel"/></div><div className="field"><label>Pickup</label><select name="pickupType" defaultValue="asap"><option value="asap">ASAP</option><option value="scheduled">Schedule pickup</option></select></div><div className="field full"><label>Pickup time (optional)</label><input name="pickupTime" placeholder="Example: 6:30 PM"/></div><div className="field full"><label>Order notes</label><textarea name="notes" rows={2} maxLength={500}/></div></div>
-          <fieldset className="ledger-choice"><legend>Put your name on the live order board?</legend><label><input required type="radio" name="showNameOnLedger" value="yes"/><span>YES · FIRST NAME + LAST INITIAL</span></label><label><input required type="radio" name="showNameOnLedger" value="no"/><span>NO · ORDER NUMBER ONLY</span></label></fieldset>
           <label className="allergy"><input required name="allergyAck" type="checkbox"/><span>I understand I should tell No Problemo about any food allergies and call for allergy-sensitive orders.</span></label>
           <button className="chalk-btn accent order-submit" disabled={!cart.length||!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false} type="submit">PLACE CASH ORDER · {money(total)}</button>
           {(!settings?.onlineOrderingEnabled||settings?.currentlyOpen===false)&&<p className="danger">{settings?.currentlyOpen===false?'WE ARE CURRENTLY CLOSED — YOUR CART WILL STAY HERE.':'ONLINE ORDERS PAUSED — PLEASE CALL OR COME SEE US.'}</p>}{msg&&<p>{msg}</p>}
