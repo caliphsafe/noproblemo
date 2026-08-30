@@ -19,7 +19,7 @@ export default function OrderingApp(){
   const touchStartX=useRef<number|null>(null);
 
   const load=async()=>{
-    const [m,s,l]=await Promise.all([
+    const [m,s]=await Promise.all([
       fetch('/api/menu',{cache:'no-store'}).then(r=>r.json()),
       fetch('/api/settings',{cache:'no-store'}).then(r=>r.json())
     ]);
