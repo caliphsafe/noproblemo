@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect,useState} from 'react';
+import {use,useEffect,useState} from 'react';
 import {createClient} from '@supabase/supabase-js';
 
 const money=(c:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
@@ -8,10 +8,11 @@ type Item={item_name_snapshot:string;quantity:number;item_notes:string;line_tota
 type Order={id:string;order_number:number;fulfillment_status:string;payment_status:string;total_cents:number;created_at:string;pickup_time:string|null;items:Item[]};
 const steps=[['new','ORDER RECEIVED'],['accepted','ORDER RECEIVED'],['cooking','COOKING'],['ready','READY'],['picked_up','PICKED UP']];
 
-export default function OrderStatusPage({params}:{params:{token:string}}){
+export default function OrderStatusPage({params}:{params:Promise<{token:string}>}){
+  const {token}=use(params);
   const [order,setOrder]=useState<Order|null>(null); const [error,setError]=useState('');
-  const load=async()=>{try{const r=await fetch('/api/orders/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token:params.token})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Order not found');setOrder(d)}catch(e:any){setError(e.message)}};
-  useEffect(()=>{load(); const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; let channel:any; if(url&&key){const rt=createClient(url,key,{auth:{persistSession:false}});channel=rt.channel(`order-status-${params.token}`).on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:`customer_token=eq.${params.token}`},load).subscribe()} const timer=setInterval(load,20000);return()=>{clearInterval(timer);channel?.unsubscribe()}},[params.token]);
+  const load=async()=>{try{const r=await fetch('/api/orders/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Order not found');setOrder(d)}catch(e:any){setError(e.message)}};
+  useEffect(()=>{load(); const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; let channel:any; if(url&&key){const rt=createClient(url,key,{auth:{persistSession:false}});channel=rt.channel(`order-status-${token}`).on('postgres_changes',{event:'UPDATE',schema:'public',table:'orders',filter:`customer_token=eq.${token}`},load).subscribe()} const timer=setInterval(load,20000);return()=>{clearInterval(timer);channel?.unsubscribe()}},[token]);
   if(error)return <main className="status-board"><div className="status-wrap"><a className="back-link" href="/">← BACK TO ORDERING</a><div className="status-error"><h1>ORDER NOT FOUND</h1><p>{error}</p></div></div></main>;
   if(!order)return <main className="status-board"><div className="status-wrap"><div className="status-loading">CHECKING YOUR ORDER…</div></div></main>;
   const idx=Math.max(0,steps.findIndex(x=>x[0]===order.fulfillment_status));
