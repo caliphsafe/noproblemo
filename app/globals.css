@@ -20,3 +20,73 @@
 @media(max-width:900px){.ordering-workspace{display:block;padding:10px 0 4px}.category-nav{position:sticky;top:0;z-index:22;display:flex;flex-direction:row;gap:12px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:7px 8px 11px;margin:0 -8px 8px;background:rgba(20,33,27,.96);-webkit-overflow-scrolling:touch;scrollbar-width:none}.category-nav::-webkit-scrollbar{display:none}.category-nav:after{left:8px;right:8px;top:auto;bottom:1px;width:auto;height:7px;background:var(--chalk-rule) center/100% 100% no-repeat}.category-nav button{flex:0 0 auto;width:auto;min-width:max-content;padding:6px 3px 9px;scroll-snap-align:center}.category-nav button span{font-size:.66rem}.category-nav button small{display:none}.category-nav button.active{padding-left:3px}.category-nav button.active:before{display:none}.category-nav button.active:after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--chalk-rule) center/100% 100% no-repeat}.order-section{margin-top:18px}.order-zone{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mobile-category-count,.mobile-hint{display:block}.desktop-hint{display:none}.category-head{display:grid;grid-template-columns:34px 1fr 34px;align-items:start;gap:5px;text-align:center}.category-head>div{text-align:center}.category-arrow{display:block;border:0;background:transparent;color:var(--chalk);font:700 2rem/1 'Patrick Hand';padding:0;cursor:pointer}.admin-columns{grid-template-columns:1fr}}
 @media(max-width:640px){body{font-size:16px}.board{background-attachment:scroll;background-size:620px auto}.wrap{width:calc(100% - 18px)}.hero{padding:8px 0 10px}.compact-logo{width:min(105px,27vw);margin-bottom:5px}.hero-info{font-size:.58rem;gap:4px 10px}.hero-strip{font-size:.62rem;margin-top:7px}.ordering-workspace{padding-top:7px}.category-nav{margin:0 -9px 6px;padding:6px 9px 10px}.section-heading-row{padding-bottom:8px;margin-bottom:9px}.section-heading-row h1,.section-heading-row h2{font-size:1.55rem}.category-head h2{font-size:1.5rem}.category-head p{font-size:.78rem;line-height:1.1}.compact-item-list{padding-top:3px}.menu-item{padding:8px 1px 11px}.menu-item h3{font-size:.98rem}.desc{font-size:.75rem}.price{font-size:.72rem}.item-title-row{gap:8px}.order-section{margin-top:14px}.order-zone{display:flex;flex-direction:column;gap:10px}.chalk-panel{padding:12px}.checkout-grid,.admin-form{grid-template-columns:1fr}.field.full{grid-column:auto}.mobile-cart{display:block;position:fixed;left:8px;right:8px;bottom:8px;z-index:40}.mobile-cart button{width:100%;background:#132019}.footer{padding-bottom:76px}.admin-shell{padding:9px}.modal{padding:13px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Private customer order-status page */
+.status-board{min-height:100vh;background-color:var(--board);background-image:linear-gradient(rgba(12,25,19,.62),rgba(12,25,19,.68)),url('/noprobs.avif');background-size:760px auto;color:var(--chalk);padding:22px 16px}.status-wrap{width:min(760px,100%);margin:auto}.status-head{display:flex;align-items:center;gap:18px;padding-bottom:16px;position:relative}.status-head:after{content:'';position:absolute;left:0;right:0;bottom:0;height:7px;background:var(--chalk-rule) center/100% 100% no-repeat}.status-head img{width:86px;height:auto}.status-head span{font: .68rem 'Special Elite',monospace;letter-spacing:.1em;color:var(--muted)}.status-head h1{font:700 2.5rem 'Cabin Sketch',sans-serif;margin:2px 0 0}.status-ticket{position:relative;margin-top:20px;padding:20px}.status-ticket:before{content:'';position:absolute;inset:0;background:var(--chalk-frame) center/100% 100% no-repeat;pointer-events:none}.status-ticket>*{position:relative}.status-top{display:flex;justify-content:space-between;gap:14px;align-items:end}.micro{font-family:'Special Elite',monospace;text-transform:uppercase;letter-spacing:.1em;font-size:.72rem}.status-top h2{font:700 clamp(1.7rem,5vw,2.5rem)/1 'Cabin Sketch',sans-serif;margin:4px 0 0}.status-top>strong{font:700 1.2rem 'Special Elite',monospace}.cash-note{color:var(--yellow);font-family:'Special Elite',monospace;font-size:.78rem;margin:12px 0 18px}.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:13px 0 17px;position:relative}.progress:before{content:'';position:absolute;left:3%;right:3%;top:24px;height:5px;background:var(--chalk-rule) center/100% 100% no-repeat;opacity:.45}.progress-step{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;color:rgba(245,241,223,.42);font: .63rem 'Special Elite',monospace;position:relative}.progress-step .mark{font:1.25rem 'Patrick Hand';line-height:1;background:var(--board);padding:0 5px}.progress-step.done,.progress-step.current{color:var(--chalk)}.progress-step.current{color:var(--yellow)}.status-items{position:relative;margin-top:7px;padding-top:13px}.status-items:before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:var(--chalk-rule) center/100% 100% no-repeat;opacity:.65}.status-items h3{font:700 1.25rem 'Cabin Sketch',sans-serif;margin:0 0 5px}.status-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;position:relative}.status-item+ .status-item:before{content:'';position:absolute;left:0;right:0;top:0;height:5px;background:var(--chalk-rule) center/100% 100% no-repeat;opacity:.45}.status-item strong{display:block}.status-item span{display:block;color:var(--yellow);font: .68rem 'Special Elite',monospace;margin-top:2px;text-transform:uppercase}.status-item b{font-family:'Special Elite',monospace;white-space:nowrap}.status-payment{display:flex;justify-content:space-between;gap:12px;margin-top:9px;padding-top:12px;position:relative;font: .76rem 'Special Elite',monospace}.status-payment:before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:var(--chalk-rule) center/100% 100% no-repeat;opacity:.55}.status-payment strong{color:var(--yellow)}.status-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:17px 0}.status-footer{text-align:center;color:var(--muted);font-size:.8rem;padding:12px 0 35px}.back-link{display:inline-block;color:var(--chalk);font-family:'Special Elite',monospace;font-size:.72rem;text-decoration:none;margin-bottom:14px}.status-loading,.status-error{text-align:center;padding:70px 20px;font-family:'Special Elite',monospace}.status-error h1{font-family:'Cabin Sketch',sans-serif}.status-error p{color:var(--muted)}
+@media(max-width:560px){.status-board{padding:12px 10px}.status-head{gap:12px;padding-bottom:12px}.status-head img{width:66px}.status-head h1{font-size:2rem}.status-ticket{margin-top:14px;padding:14px}.status-top h2{font-size:1.65rem}.status-top>strong{font-size:1rem}.progress{gap:2px}.progress-step{font-size:.53rem}.progress:before{top:23px}.status-item{font-size:.9rem}.status-item span{font-size:.61rem}.status-actions{margin-bottom:8px}.status-actions .chalk-btn{width:100%}}
+
+/* 43 BUILD — authentic physical chalk material pass
+   Geometry stays exact; only the material of rules and frames changes. */
+:root{
+  --chalk-rule:url('/chalk-rule-1.png');
+  --chalk-rule-alt:url('/chalk-rule-2.png');
+  --chalk-rule-alt2:url('/chalk-rule-3.png');
+  --chalk-vertical:url('/chalk-vertical-1.png');
+  --chalk-frame-real:url('/chalk-frame-real-1.png');
+}
+
+/* Horizontal ruled strokes: 28px source compressed to 12px gives a ~3–4px
+   deposited chalk core plus powder feathering, rather than a broken CSS line. */
+.hero:after,.section-heading-row:after,.compact-item-list:before,.menu-item:after,
+.cart-row:after,.footer:before,.modifier:before,.admin-col:before,
+.admin-line-item:before,.status-head:after,.progress:before,.status-items:before,
+.status-item + .status-item:before,.status-payment:before{
+  height:12px;
+  background-image:var(--chalk-rule);
+  background-position:center;
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  opacity:.9;
+}
+.menu-item:nth-child(3n+2):after,.cart-row:nth-child(3n+2):after,.status-item:nth-child(3n+2):before{background-image:var(--chalk-rule-alt)}
+.menu-item:nth-child(3n):after,.cart-row:nth-child(3n):after,.status-item:nth-child(3n):before{background-image:var(--chalk-rule-alt2)}
+
+/* The category column gets a purpose-built vertical chalk deposit. */
+.category-nav:after{
+  width:12px;
+  background-image:var(--chalk-vertical);
+  background-position:center;
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  opacity:.9;
+}
+
+/* Frames use nine-slice raster chalk. This keeps every panel perfectly
+   rectangular while preserving pigment grain, pores, dust and pressure. */
+.chalk-panel:before,.chalk-btn:before,.modal:before,.close:before,.qty button:before,
+.admin-tabs button:before,.admin-actions button:before,.admin-table button:before,
+.admin-order:before,.status-ticket:before{
+  background:none;
+  box-sizing:border-box;
+  border:12px solid transparent;
+  border-image-source:url('/chalk-frame-real-1.png');
+  border-image-slice:28;
+  border-image-width:12px;
+  border-image-repeat:stretch;
+  opacity:.94;
+}
+.chalk-panel:nth-of-type(even):before,.admin-order:nth-of-type(3n+2):before{border-image-source:url('/chalk-frame-real-2.png')}
+.admin-order:nth-of-type(3n):before{border-image-source:url('/chalk-frame-real-3.png')}
+
+/* Input boundaries now use chalk texture instead of a clean CSS border. */
+.field{position:relative}
+input,textarea,select{border-bottom:0;position:relative;background-color:rgba(0,0,0,.12)}
+.field:after{content:'';position:absolute;left:0;right:0;bottom:0;height:12px;background:url('/chalk-rule-2.png') center/100% 100% no-repeat;opacity:.72;pointer-events:none}
+.field:focus-within:after{opacity:1;filter:sepia(.25) saturate(1.2)}
+
+/* Mobile keeps the existing horizontal category UX. Its bottom rule is chalk,
+   while the desktop category separator remains vertical. */
+@media(max-width:900px){
+  .category-nav:after{left:8px;right:8px;top:auto;bottom:1px;width:auto;height:12px;background-image:url('/chalk-rule-1.png');background-size:100% 100%}
+  .category-nav button.active:after{height:12px;background-image:url('/chalk-rule-3.png');background-size:100% 100%}
+}
