@@ -66,7 +66,7 @@ export default function ResetPasswordPage(){
 
   return <main className="admin-shell reset-password-page"><div className="admin-wrap reset-password-card">
     <a className="reset-back" href="/admin">← ADMIN LOGIN</a>
-    <span className="eyebrow">NO PROBLEMO · ADMIN</span>
+    <span className="eyebrow"> NO PROBLEMO · ADMIN</span>
     <h1>RESET PASSWORD</h1>
     {checking?<p>Checking reset link…</p>:canUpdate?
       <form className="reset-password-form" onSubmit={updatePassword}>
