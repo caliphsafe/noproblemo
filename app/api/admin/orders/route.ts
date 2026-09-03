@@ -51,16 +51,46 @@ export async function POST(req:Request){
     if(!['phone','walk_in','admin'].includes(b.source))throw new Error('Invalid order source.');
     const db=adminSupabase();let total=0;const snapshots:any[]=[];
     for(const line of b.items){
-      const {data:item}=await db.from('menu_items').select('id,name,category_id,price_cents,active').eq('id',line.menu_item_id).single();
-      if(!item||!item.active)throw new Error('Menu item unavailable.');
+      const {data:item}=await db.from('menu_items').select('id,name,category_id,price_cents,active,sold_out').eq('id',line.menu_item_id).single();
+      if(!item||!item.active||item.sold_out)throw new Error('A selected menu item is unavailable.');
       const {data:category}=await db.from('menu_categories').select('name').eq('id',item.category_id).single();
       const qty=Math.max(1,Math.min(50,Number(line.quantity)||1));
-      total+=item.price_cents*qty;snapshots.push({item,qty,fullName:fullMenuItemName(item.name,category?.name)});
+      const optionIds=Array.isArray(line.modifier_option_ids)?[...new Set(line.modifier_option_ids.filter(Boolean))]:[];
+      const {data:links,error:linkError}=await db.from('menu_item_modifier_groups').select('modifier_group_id').eq('menu_item_id',item.id);
+      if(linkError)throw linkError;
+      const linkedGroupIds=[...new Set((links||[]).map((x:any)=>x.modifier_group_id))];
+      const {data:groups,error:groupError}=linkedGroupIds.length?await db.from('modifier_groups').select('id,name,selection_type,required,min_select,max_select').in('id',linkedGroupIds):{data:[] as any[],error:null};
+      if(groupError)throw groupError;
+      let opts:any[]=[];
+      if(optionIds.length){
+        const res=await db.from('modifier_options').select('id,name,price_cents,active,modifier_group_id').in('id',optionIds);opts=res.data||[];if(res.error)throw res.error;
+        if(opts.length!==optionIds.length||opts.some((o:any)=>!o.active))throw new Error('A selected modifier is unavailable.');
+        const allowed=new Set(linkedGroupIds);
+        if(opts.some((o:any)=>!allowed.has(o.modifier_group_id)))throw new Error('A selected modifier does not belong to this item.');
+      }
+      for(const g of groups||[]){
+        const selected=opts.filter((o:any)=>o.modifier_group_id===g.id);
+        const minimum=g.required?Math.max(1,Number(g.min_select||0)):Number(g.min_select||0);
+        if(selected.length<minimum)throw new Error(`${g.name} requires ${minimum} selection${minimum===1?'':'s'}.`);
+        if(g.selection_type==='single'&&selected.length>1)throw new Error(`${g.name} allows only one selection.`);
+        if(g.max_select&&selected.length>g.max_select)throw new Error(`Too many selections for ${g.name}.`);
+      }
+      const choices=opts.map((o:any)=>({option:o,groupName:(groups||[]).find((g:any)=>g.id===o.modifier_group_id)?.name||''}));
+      const unit=item.price_cents+choices.reduce((a:number,c:any)=>a+Number(c.option.price_cents||0),0);
+      total+=unit*qty;
+      snapshots.push({item,qty,fullName:fullMenuItemName(item.name,category?.name),choices,itemNotes:String(line.item_notes||'').slice(0,300),unit});
     }
     const token=crypto.randomBytes(32).toString('hex');const last=(b.lastName||'').trim();
-    const {data:order,error}=await db.from('orders').insert({customer_first_name:String(b.firstName).slice(0,40),customer_last_name:last.slice(0,40),customer_public_name:`${String(b.firstName).slice(0,40)}${last?` ${last[0].toUpperCase()}.`:''}`,phone:String(b.phone||'N/A').slice(0,24),pickup_type:b.pickupType==='scheduled'?'scheduled':'asap',pickup_time:b.pickupTime||null,customer_notes:String(b.notes||'').slice(0,500),source:b.source,subtotal_cents:total,total_cents:total,customer_token:token}).select('*').single();
+    const {data:order,error}=await db.from('orders').insert({customer_first_name:String(b.firstName).slice(0,40),customer_last_name:last.slice(0,40),customer_public_name:`${String(b.firstName).slice(0,40)}${last?` ${last[0].toUpperCase()}.`:''}`,phone:String(b.phone||'N/A').slice(0,24),pickup_type:b.pickupType==='scheduled'?'scheduled':'asap',pickup_time:b.pickupType==='scheduled'?(b.pickupTime||null):null,customer_notes:String(b.notes||'').slice(0,500),source:b.source,subtotal_cents:total,total_cents:total,customer_token:token}).select('*').single();
     if(error)throw error;
-    await db.from('order_items').insert(snapshots.map(s=>({order_id:order.id,menu_item_id:s.item.id,item_name_snapshot:s.fullName,item_price_cents_snapshot:s.item.price_cents,quantity:s.qty,line_total_cents:s.item.price_cents*s.qty})));
+    for(const s of snapshots){
+      const {data:orderItem,error:itemError}=await db.from('order_items').insert({order_id:order.id,menu_item_id:s.item.id,item_name_snapshot:s.fullName,item_price_cents_snapshot:s.item.price_cents,quantity:s.qty,item_notes:s.itemNotes,line_total_cents:s.unit*s.qty}).select('id').single();
+      if(itemError)throw itemError;
+      if(s.choices.length){
+        const {error:modError}=await db.from('order_item_modifiers').insert(s.choices.map((c:any)=>({order_item_id:orderItem.id,modifier_option_id:c.option.id,modifier_name_snapshot:c.option.name,modifier_price_cents_snapshot:c.option.price_cents})));
+        if(modError)throw modError;
+      }
+    }
     return NextResponse.json(order,{status:201});
   }catch(e:any){return NextResponse.json({error:e.message},{status:400})}
 }
