@@ -124,3 +124,10 @@ input,textarea,select{border-bottom:0;position:relative;background-color:rgba(0,
 .reset-success{margin-top:18px;color:var(--yellow)}
 .reset-help{margin-top:18px;color:var(--muted)}
 @media(max-width:520px){.admin-forgot-link{display:block;margin:14px 0 0}.reset-password-form .chalk-btn{width:100%}}
+
+/* Admin auth fields: make the typing target unmistakable while preserving chalkboard style. */
+.admin-shell form>label,.reset-password-form label{display:grid;gap:7px;font-family:'Special Elite',monospace;text-transform:uppercase;letter-spacing:.06em;font-size:.78rem;color:var(--chalk)}
+.admin-shell form>label input,.reset-password-form input{min-height:46px;padding:10px 12px;border:1px solid rgba(245,241,223,.38);border-bottom:0;background:rgba(0,0,0,.22);color:var(--chalk);caret-color:var(--yellow);outline:none;box-shadow:inset 0 -3px 0 rgba(245,241,223,.55);transition:background .15s ease,box-shadow .15s ease,border-color .15s ease}
+.admin-shell form>label input:hover,.reset-password-form input:hover{background:rgba(0,0,0,.29);border-color:rgba(245,241,223,.55);box-shadow:inset 0 -3px 0 rgba(245,241,223,.72)}
+.admin-shell form>label input:focus,.reset-password-form input:focus{background:rgba(0,0,0,.34);border-color:rgba(232,208,113,.72);box-shadow:inset 0 -3px 0 var(--yellow),0 0 0 2px rgba(232,208,113,.10)}
+.admin-shell form>label input::placeholder,.reset-password-form input::placeholder{color:rgba(245,241,223,.42)}
