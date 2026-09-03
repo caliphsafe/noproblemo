@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server';import {adminSupabase} from '@/lib/supabase';import {isRestaurantOpen} from '@/lib/hours';export const dynamic='force-dynamic';
+export async function GET(){try{const {data,error}=await adminSupabase().from('restaurant_settings').select('public_settings').eq('id',1).single();if(error)throw error;return NextResponse.json({...data.public_settings,currentlyOpen:isRestaurantOpen(data.public_settings)})}catch(e:any){return NextResponse.json({error:e.message},{status:500})}}

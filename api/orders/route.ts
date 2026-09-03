@@ -1,0 +1,54 @@
+import {NextResponse} from 'next/server';
+import {z} from 'zod';
+import {adminSupabase} from '@/lib/supabase';
+import {rateLimit} from '@/lib/rate-limit';
+import crypto from 'crypto';
+import {isRestaurantOpen} from '@/lib/hours';
+import {fullMenuItemName} from '@/lib/menu-names';
+
+const S=z.object({
+  firstName:z.string().trim().min(1).max(40),lastName:z.string().trim().max(40).optional().default(''),phone:z.string().trim().min(7).max(24),
+  pickupType:z.enum(['asap','scheduled']),pickupTime:z.string().max(40).optional().nullable(),notes:z.string().max(500).optional().default(''),
+  allergyAck:z.literal(true),
+  items:z.array(z.object({menu_item_id:z.string().uuid(),quantity:z.number().int().min(1).max(20),notes:z.string().max(300).optional().default(''),option_ids:z.array(z.string().uuid()).max(20)})).min(1).max(30)
+});
+
+export async function POST(req:Request){
+  try{
+    const ip=req.headers.get('x-forwarded-for')?.split(',')[0]||'local';
+    if(!rateLimit(ip,6,60000))return NextResponse.json({error:'Too many order attempts. Please wait a minute.'},{status:429});
+    const body=S.parse(await req.json());const db=adminSupabase();
+    const {data:set}=await db.from('restaurant_settings').select('public_settings,private_settings').eq('id',1).single();
+    if(set?.public_settings?.onlineOrderingEnabled===false||!isRestaurantOpen(set?.public_settings))return NextResponse.json({error:'Online ordering is currently paused.'},{status:409});
+    let total=0;const snapshots:any[]=[];
+    for(const line of body.items){
+      const {data:item}=await db.from('menu_items').select('id,name,category_id,price_cents,active,sold_out').eq('id',line.menu_item_id).single();
+      if(!item||!item.active||item.sold_out)throw new Error('One of your selected items is unavailable.');
+      const {data:category}=await db.from('menu_categories').select('name').eq('id',item.category_id).single();
+      const fullName=fullMenuItemName(item.name,category?.name);
+      const {data:opts}=line.option_ids.length?await db.from('modifier_options').select('id,name,price_cents,active,modifier_group_id').in('id',line.option_ids):{data:[] as any[]};
+      if((opts||[]).some((o:any)=>!o.active))throw new Error('One selected option is unavailable.');
+      if((opts||[]).length!==line.option_ids.length)throw new Error('Invalid modifier option.');
+      if(line.option_ids.length){
+        const groupIds=[...new Set((opts||[]).map((o:any)=>o.modifier_group_id))];
+        const {data:links}=await db.from('menu_item_modifier_groups').select('modifier_group_id').eq('menu_item_id',line.menu_item_id).in('modifier_group_id',groupIds);
+        const allowedGroups=new Set((links||[]).map((x:any)=>x.modifier_group_id));
+        if(groupIds.some((g:any)=>!allowedGroups.has(g)))throw new Error('A selected modifier does not apply to this item.');
+        const {data:groups}=await db.from('modifier_groups').select('id,selection_type,max_select').in('id',groupIds);
+        for(const g of groups||[]){const count=(opts||[]).filter((o:any)=>o.modifier_group_id===g.id).length;if(g.selection_type==='single'&&count>1)throw new Error('Only one option may be selected in a single-choice group.');if(g.max_select&&count>g.max_select)throw new Error('Too many options selected.');}
+      }
+      const unit=item.price_cents+(opts||[]).reduce((s:number,o:any)=>s+o.price_cents,0);total+=unit*line.quantity;snapshots.push({line,item,fullName,opts:opts||[],unit});
+    }
+    if(total<=0||total>200000)throw new Error('Invalid order total.');
+    const token=crypto.randomBytes(32).toString('hex');
+    const publicName='';
+    const {data:order,error}=await db.from('orders').insert({customer_first_name:body.firstName,customer_last_name:body.lastName,customer_public_name:publicName,phone:body.phone,pickup_type:body.pickupType,pickup_time:body.pickupTime||null,customer_notes:body.notes,source:'web',subtotal_cents:total,total_cents:total,customer_token:token}).select('id,order_number,total_cents,fulfillment_status').single();
+    if(error)throw error;
+    for(const s of snapshots){
+      const {data:oi,error:ie}=await db.from('order_items').insert({order_id:order.id,menu_item_id:s.item.id,item_name_snapshot:s.fullName,item_price_cents_snapshot:s.item.price_cents,quantity:s.line.quantity,item_notes:s.line.notes,line_total_cents:s.unit*s.line.quantity}).select('id').single();
+      if(ie)throw ie;
+      if(s.opts.length){const rows=s.opts.map((o:any)=>({order_item_id:oi.id,modifier_option_id:o.id,modifier_name_snapshot:o.name,modifier_price_cents_snapshot:o.price_cents}));const {error:me}=await db.from('order_item_modifiers').insert(rows);if(me)throw me;}
+    }
+    return NextResponse.json({order_number:order.order_number,total_cents:order.total_cents,fulfillment_status:order.fulfillment_status,token},{status:201});
+  }catch(e:any){return NextResponse.json({error:e?.issues?.[0]?.message||e.message||'Could not place order'},{status:400})}
+}
