@@ -86,7 +86,7 @@ export default function OrderingApp(){
     const r=await fetch('/api/orders',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();
     if(!r.ok){setMsg(d.error||'Could not place order');return}
     setCart([]);
-    setMsg(`Order #${String(d.order_number).padStart(3,'0')} received. Pay cash at pickup.`);
+    window.location.href=`/order/status/${encodeURIComponent(d.token)}`;
   }
 
   return <main className="board"><div className="wrap">
@@ -150,5 +150,10 @@ function ItemModal({item,displayName,onClose,onAdd}:{item:MenuItem;displayName:s
       return {...v,[g.id]:next};
     });
   }
-  return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><div className="modal" role="dialog" aria-modal="true"><button className="close" onClick={onClose}>×</button><h2>{displayName}</h2><p>{item.description}</p><strong>{money(item.price_cents)}</strong>{item.modifier_groups.map(g=><div className="modifier" key={g.id}><h4>{g.name}{g.required?' *':''}</h4>{g.options.map(o=><label className="choice" key={o.id}><input type={g.selection_type==='single'?'radio':'checkbox'} name={g.id} checked={(selected[g.id]||[]).includes(o.id)} onChange={()=>toggle(g,o.id)}/><span>{o.name}{o.price_cents?` (+${money(o.price_cents)})`:''}</span></label>)}</div>)}<div className="modifier"><label>Item note</label><textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={300} rows={2}/></div><div className="qty"><button onClick={()=>setQ(Math.max(1,q-1))}>−</button><strong>{q}</strong><button onClick={()=>setQ(Math.min(20,q+1))}>+</button></div><button className="chalk-btn accent" onClick={()=>onAdd(item,choices,q,notes)}>ADD TO ORDER · {money(price)}</button></div></div>;
+  useEffect(()=>{
+    const handleKey=(e:KeyboardEvent)=>{if(e.key==='Escape')onClose()};
+    window.addEventListener('keydown',handleKey);
+    return ()=>window.removeEventListener('keydown',handleKey);
+  },[onClose]);
+  return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><div className="modal" role="dialog" aria-modal="true"><button type="button" className="close" aria-label="Close item details" onPointerDown={e=>{e.preventDefault();e.stopPropagation();onClose()}}>×</button><h2>{displayName}</h2><p>{item.description}</p><strong>{money(item.price_cents)}</strong>{item.modifier_groups.map(g=><div className="modifier" key={g.id}><h4>{g.name}{g.required?' *':''}</h4>{g.options.map(o=><label className="choice" key={o.id}><input type={g.selection_type==='single'?'radio':'checkbox'} name={g.id} checked={(selected[g.id]||[]).includes(o.id)} onChange={()=>toggle(g,o.id)}/><span>{o.name}{o.price_cents?` (+${money(o.price_cents)})`:''}</span></label>)}</div>)}<div className="modifier"><label>Item note</label><textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={300} rows={2}/></div><div className="qty"><button onClick={()=>setQ(Math.max(1,q-1))}>−</button><strong>{q}</strong><button onClick={()=>setQ(Math.min(20,q+1))}>+</button></div><button className="chalk-btn accent" onClick={()=>onAdd(item,choices,q,notes)}>ADD TO ORDER · {money(price)}</button></div></div>;
 }

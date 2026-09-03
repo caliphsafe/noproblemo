@@ -90,3 +90,8 @@ input,textarea,select{border-bottom:0;position:relative;background-color:rgba(0,
   .category-nav:after{left:8px;right:8px;top:auto;bottom:1px;width:auto;height:12px;background-image:url('/chalk-rule-1.png');background-size:100% 100%}
   .category-nav button.active:after{height:12px;background-image:url('/chalk-rule-3.png');background-size:100% 100%}
 }
+
+/* Modal close control: keep chalk texture decorative, never above the hit target. */
+.close{float:none;position:absolute!important;top:14px;right:14px;z-index:8;display:grid;place-items:center;font-size:28px;line-height:1;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.close:before{pointer-events:none;z-index:-1}
+.modal>h2{padding-right:52px}
