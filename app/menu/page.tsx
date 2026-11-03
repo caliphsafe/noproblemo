@@ -1,1 +1,2 @@
+export const dynamic='force-dynamic';
 import {Shell,MenuContent} from '@/components/CmsWebsite';export const metadata={title:'Menu | No Problemo'};export default function Page(){return <Shell><div className="cms-title"><p className="micro">FRESH FOOD · NO FUSS</p><h1>THE MENU</h1><p>Browse the menu. Order in person. Cash only.</p></div><MenuContent/></Shell>}
