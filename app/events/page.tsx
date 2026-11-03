@@ -1,0 +1,1 @@
+import {Shell,EventsContent} from '@/components/CmsWebsite';export const metadata={title:'Events | No Problemo'};export default function Page(){return <Shell><div className="cms-title"><p className="micro">MUSIC · COMMUNITY · NEW BEDFORD</p><h1>WHAT'S HAPPENING</h1></div><EventsContent/></Shell>}
