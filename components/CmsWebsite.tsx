@@ -5,7 +5,7 @@ const ordered=(a:Row,b:Row)=>Number(a.sort_order||0)-Number(b.sort_order||0);
 const truthy=(s?:string)=>String(s).toLowerCase()==='true';
 const price=(s?:string)=>s&&Number.isFinite(Number(s))?'$'+Number(s).toFixed(2):'';
 function Nav(){return <nav className="cms-nav" aria-label="Main navigation"><Link href="/">HOME</Link><Link href="/menu">MENU</Link><Link href="/about">ABOUT</Link><Link href="/events">EVENTS</Link><Link href="/contact">CONTACT</Link></nav>}
-export function Shell({children}:{children:React.ReactNode}){return <div className="board cms-site"><header className="cms-header wrap"><Link href="/" aria-label="No Problemo home"><img src="/logo.png" alt="No Problemo" className="cms-logo" onError={undefined}/></Link><Nav/></header><main className="wrap">{children}</main><footer className="wrap cms-footer">NO PROBLEMO · 813 PURCHASE STREET · NEW BEDFORD, MA · <a href="tel:+15089841081">508-984-1081</a> · CASH ONLY</footer></div>}
+export function Shell({children}:{children:React.ReactNode}){return <div className="board cms-site"><header className="cms-header wrap"><Link href="/" aria-label="No Problemo home"><span className="cms-wordmark">NO PROBLEMO</span></Link><Nav/></header><main className="wrap">{children}</main><footer className="wrap cms-footer">NO PROBLEMO · 813 PURCHASE STREET · NEW BEDFORD, MA · <a href="tel:+15089841081">508-984-1081</a> · CASH ONLY</footer></div>}
 export async function MenuContent({preview=false}:{preview?:boolean}){
  const [cats,items]=await Promise.all([publicCms('Menu_Categories'),publicCms('Menu_Items')]);
  const categories=cats.filter(x=>truthy(x.active)).sort(ordered);
