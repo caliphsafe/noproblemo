@@ -10,7 +10,8 @@ export function Shell({children}:{children:React.ReactNode}){return <div classNa
 export async function MenuContent({preview=false}:{preview?:boolean}){
  const [cats,items]=await Promise.all([publicCms('Menu_Categories'),publicCms('Menu_Items')]);
  const categories=cats.filter(x=>truthy(x.active)).sort(ordered);
- return <MenuExplorer categories={categories.map(c=>({...c,items:items.filter(i=>i.category_id===c.id&&truthy(i.active)).sort(ordered)})).filter(c=>c.items.length)} preview={preview}/>;
+ const menuCategories=categories.map(c=>({id:c.id,name:c.name,description:c.description||'',items:items.filter(i=>i.category_id===c.id&&truthy(i.active)).sort(ordered)})).filter(c=>c.items.length>0);
+ return <MenuExplorer categories={menuCategories} preview={preview}/>;
 }
 export async function EventsContent({preview=false}:{preview?:boolean}){
  const events=(await publicCms('Events')).filter(e=>e.status==='published').sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||''));
