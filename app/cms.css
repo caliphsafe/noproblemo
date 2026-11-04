@@ -241,3 +241,17 @@ html,body{
  .np-site .np-footer-brand>.micro{font-size:11px;margin-bottom:12px}
  .np-site .np-footer-brand>h2{margin:0}
 }
+
+/* Single menu management view: categories and their dishes together. */
+.np-simple-admin .np-menu-admin-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:0 0 22px}
+.np-simple-admin .np-menu-admin-toolbar p{margin:0;color:var(--chalk);opacity:.8}
+.np-simple-admin .np-menu-admin-groups{display:grid;gap:22px}
+.np-simple-admin .np-menu-admin-group{border:1px solid rgba(245,241,223,.34);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.24)}
+.np-simple-admin .np-menu-admin-group-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:19px 22px;background:rgba(0,0,0,.38);border-bottom:1px dashed rgba(245,241,223,.35)}
+.np-simple-admin .np-menu-admin-group-head h3{font:700 clamp(24px,3vw,34px)/1 'Cabin Sketch',sans-serif;color:var(--yellow);margin:0 0 6px}
+.np-simple-admin .np-menu-admin-group-head span{font:11px 'Special Elite',monospace;letter-spacing:.08em}
+.np-simple-admin .np-menu-admin-group .np-simple-list{padding:0 20px 16px}
+.np-simple-admin .np-menu-admin-group .np-simple-item{margin:0}
+.np-simple-admin .np-menu-admin-add-food{display:block;width:100%;padding:14px;margin-top:14px;border:1px dashed rgba(245,241,223,.55);border-radius:6px;background:transparent;color:var(--yellow);text-align:center;cursor:pointer}
+.np-simple-admin .np-menu-admin-add-food:hover,.np-simple-admin .np-menu-admin-add-food:focus-visible{background:rgba(232,208,113,.12)}
+@media(max-width:760px){.np-simple-admin .np-menu-admin-group-head{align-items:flex-start;flex-direction:column;padding:17px}.np-simple-admin .np-menu-admin-group .np-simple-list{padding:0 14px 14px}.np-simple-admin .np-menu-admin-toolbar{align-items:flex-start}}
