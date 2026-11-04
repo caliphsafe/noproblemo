@@ -187,3 +187,35 @@
  .np-site .np-events-home{padding:35px 0}
  .np-site .np-interlude{padding:45px 0}
 }
+
+/* Restore one continuous, repeating original chalkboard texture across the site and staff area. */
+html,body{
+  background-color:#14211b;
+  background-image:url('/noprobs.avif');
+  background-position:left top;
+  background-size:760px auto;
+  background-repeat:repeat;
+}
+.np-site,.admin-shell,.np-simple-admin,.board,.status-board,.reset-password-page{
+  background-color:transparent;
+  background-image:url('/noprobs.avif');
+  background-position:left top;
+  background-size:760px auto;
+  background-repeat:repeat;
+  background-attachment:scroll;
+}
+.np-site .np-menu-home,.np-site .np-interlude,.np-site .np-footer,
+.np-site .np-archive-strip,.np-site .np-manifesto,.np-site .np-photo-wall,
+.np-site .np-food-story,.np-site .np-events-home,
+.np-simple-admin .admin-wrap,.np-simple-admin .np-simple-header,
+.np-simple-admin .np-simple-tabs,.np-simple-admin .np-simple-content{
+  background-color:transparent;
+  background-image:none;
+}
+.np-simple-admin .np-simple-editor{
+  background-color:#14211b;
+  background-image:url('/noprobs.avif');
+  background-position:left top;
+  background-size:760px auto;
+  background-repeat:repeat;
+}
