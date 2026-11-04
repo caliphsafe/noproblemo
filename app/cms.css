@@ -228,3 +228,16 @@ html,body{
 }
 .np-site .np-scribble{font-size:100px;line-height:1}
 .np-site .np-handdrawn-star{font-size:clamp(160px,20vw,300px)}
+
+/* Footer identity: align logo, establishment line and headline as one clear unit. */
+.np-site .np-footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:0}
+.np-site .np-footer-brand>a{display:flex;align-items:center;justify-content:flex-start;width:clamp(175px,19vw,240px);max-width:100%;height:125px;margin:0 0 12px;padding:0}
+.np-site .np-footer-brand>a img{display:block;width:100%;height:100%;max-height:none;margin:0;object-fit:contain;object-position:left center}
+.np-site .np-footer-brand>.micro{display:block;max-width:100%;margin:0 0 14px;line-height:1.5;letter-spacing:.09em}
+.np-site .np-footer-brand>h2{margin:0;line-height:.92}
+@media(max-width:760px){
+ .np-site .np-footer-brand{align-items:flex-start}
+ .np-site .np-footer-brand>a{width:195px;height:112px;margin-bottom:10px}
+ .np-site .np-footer-brand>.micro{font-size:11px;margin-bottom:12px}
+ .np-site .np-footer-brand>h2{margin:0}
+}
