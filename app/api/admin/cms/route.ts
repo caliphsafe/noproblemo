@@ -2,7 +2,7 @@ import {NextResponse} from 'next/server';
 import {requireAdmin} from '@/lib/auth';
 import {privateCms} from '@/lib/google-cms';
 export const dynamic='force-dynamic';
-const TABLES=new Set(['Menu_Categories','Menu_Items','Modifier_Groups','Modifier_Options','Menu_Item_Modifiers','Events','Event_Artists','Site_Content','Restaurant_Settings','Media']);
+const TABLES=new Set(['Menu_Categories','Menu_Items','Events','Restaurant_Settings']);
 export async function POST(req:Request){
  if(!await requireAdmin(req))return NextResponse.json({error:'Unauthorized'},{status:401});
  try{
