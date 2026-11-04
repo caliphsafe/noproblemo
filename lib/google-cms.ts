@@ -1,5 +1,5 @@
 import 'server-only';
-export const PUBLIC_TABLES=['Menu_Categories','Menu_Items','Modifier_Groups','Modifier_Options','Menu_Item_Modifiers','Events','Site_Content','Restaurant_Settings'] as const;
+export const PUBLIC_TABLES=['Menu_Categories','Menu_Items','Events','Restaurant_Settings'] as const;
 export type CmsTable=typeof PUBLIC_TABLES[number];
 const endpoint=()=>{const url=process.env.GOOGLE_CMS_WEB_APP_URL;if(!url||!url.startsWith('https://script.google.com/macros/s/')||!url.includes('/exec'))throw Error('GOOGLE_CMS_WEB_APP_URL is not configured');return url};
 export async function publicCms(table:CmsTable):Promise<Record<string,string>[]>{
