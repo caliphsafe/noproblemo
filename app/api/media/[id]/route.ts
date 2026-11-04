@@ -8,6 +8,6 @@ export async function GET(_req:Request,{params}:{params:Promise<{id:string}>}){
   const result=await privateCms({action:'image',fileId:id});
   if(!['image/jpeg','image/png','image/webp'].includes(result.mimeType))throw Error('Invalid image');
   const bytes=Buffer.from(result.base64,'base64');if(bytes.length>6*1024*1024)throw Error('Image too large');
-  return new Response(bytes,{headers:{'content-type':result.mimeType,'cache-control':'public, max-age=300, s-maxage=3600','x-content-type-options':'nosniff'}});
+  return new Response(bytes,{headers:{'content-type':result.mimeType,'cache-control':'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400','x-content-type-options':'nosniff'}});
  }catch{return NextResponse.json({error:'Image unavailable'},{status:404});}
 }
