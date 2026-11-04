@@ -2,7 +2,7 @@
 import {useMemo,useState} from 'react';
 import Link from 'next/link';
 type Row=Record<string,string>;
-type Category=Row&{items:Row[]};
+type Category={id:string;name:string;description?:string;items:Row[];[key:string]:string|Row[]|undefined};
 function money(i:Row){const raw=i.price_usd||i.price||i.price_cents;if(!raw)return '';const n=Number(raw);if(!Number.isFinite(n))return raw;return '$'+(i.price_cents&&!i.price_usd&&!i.price?n/100:n).toFixed(2)}
 export default function MenuExplorer({categories,preview=false}:{categories:Category[],preview?:boolean}){
  const [selected,setSelected]=useState('all'),[search,setSearch]=useState('');
