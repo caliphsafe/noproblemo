@@ -5,6 +5,7 @@ import './cms.css';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://noproblemo.example.com'),
   title: { default: 'No Problemo | Taqueria in New Bedford, MA', template: '%s | No Problemo' },
+  themeColor: '#000000',
   description: 'Explore the menu, live music, and community at No Problemo, 813 Purchase Street in downtown New Bedford, Massachusetts.',
   keywords: ['No Problemo','New Bedford taqueria','burritos New Bedford','tacos New Bedford','813 Purchase Street'],
   alternates: { canonical: '/' },
