@@ -9,4 +9,4 @@ export function makeSession(){const expiry=Math.floor(Date.now()/1000)+TTL;const
 export function validSession(value:string|undefined){if(!value||secret().length<32)return false;const [expiry,signature,...rest]=value.split('.');if(rest.length||!expiry||!signature||!/^[0-9]+$/.test(expiry))return false;if(Number(expiry)<Math.floor(Date.now()/1000))return false;return equal(signature,sign(expiry))}
 export function sessionCookie(){return COOKIE}
 export function sessionMaxAge(){return TTL}
-export async function requireAdmin(req:Request){const cookie=req.headers.get('cookie')||'';const value=cookie.split(';').map(v=>v.trim()).find(v=>v.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);return validSession(value)?true:null}
+export async function requireAdmin(req:Request){if(req.method!=='GET'&&req.method!=='HEAD'){const origin=req.headers.get('origin');if(!origin||new URL(origin).host!==new URL(req.url).host)return null}const cookie=req.headers.get('cookie')||'';const value=cookie.split(';').map(v=>v.trim()).find(v=>v.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);return validSession(value)?true:null}
