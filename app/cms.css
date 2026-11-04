@@ -71,3 +71,50 @@
 /* Admin navigation: bright yellow active, hover and keyboard focus states */
 .np-simple-admin .np-simple-tabs button.active,.np-simple-admin .np-simple-tabs button:hover,.np-simple-admin .np-simple-tabs button:focus-visible{background:var(--yellow)!important;border-color:var(--yellow)!important;color:#172018!important;opacity:1!important}
 .np-simple-admin .np-simple-tabs button:focus-visible{outline:2px solid var(--yellow);outline-offset:3px}
+
+/* Stable homepage slideshow: fixed visual frame across original and event slides */
+.np-hero-slider .np-hero-stage{height:clamp(510px,46vw,650px);min-height:0}
+.np-hero-slider .np-hero-grid{height:100%;min-height:0;align-items:center;overflow:hidden}
+.np-hero-slider .np-hero-copy{min-width:0;max-height:100%;overflow-y:auto;scrollbar-width:thin;padding:14px 6px 14px 0}
+.np-hero-slider .np-hero-poster{min-height:0;height:min(100%,590px);display:flex;flex-direction:column}
+.np-hero-slider .np-poster-border{min-height:0;flex:1}
+.np-hero-slider .np-show-poster{height:min(100%,560px);align-self:center;width:100%;max-width:520px}
+.np-hero-slider .np-show-copy h1{font-size:clamp(48px,6vw,88px);line-height:.95}
+.np-hero-slider .np-show-copy .np-show-description{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.np-hero-controls .np-hero-pause{border-color:var(--acid);color:var(--acid);font-size:17px}
+.np-hero-controls .np-hero-pause[aria-pressed="true"]{background:var(--acid);color:#14211b}
+.np-event-list{display:grid;grid-template-columns:1fr;gap:28px}
+.np-event-card{display:grid;grid-template-columns:minmax(220px,.38fr) minmax(0,.62fr);min-height:360px;background:rgba(0,0,0,.22);border:1px solid rgba(245,241,223,.35);box-shadow:8px 9px 0 rgba(0,0,0,.14);overflow:hidden}
+.np-event-art{min-height:360px;background:rgba(0,0,0,.28);overflow:hidden;display:flex;align-items:center;justify-content:center;border-right:1px dashed rgba(245,241,223,.35)}
+.np-event-art>img{display:block;width:100%;height:100%;max-height:520px;object-fit:contain}
+.np-event-art-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:25px;min-height:300px}
+.np-event-art-fallback img{width:min(80%,200px);height:auto;max-height:160px;object-fit:contain}
+.np-event-art-fallback span{font:11px 'Special Elite',monospace;color:var(--acid)}
+.np-event-info{display:flex;flex-direction:column;padding:clamp(22px,3vw,46px);min-width:0}
+.np-event-topline{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;color:var(--acid)}
+.np-event-info h3{font:700 clamp(44px,5vw,78px)/.95 'Cabin Sketch',sans-serif;letter-spacing:-.04em;overflow-wrap:anywhere;margin:24px 0 10px}
+.np-event-artists{font:clamp(23px,2.5vw,33px)/1.2 'Patrick Hand',sans-serif;color:var(--acid);margin:0 0 15px}
+.np-event-description{font:clamp(19px,1.8vw,25px)/1.3 'Patrick Hand',sans-serif;margin:0 0 25px;max-width:650px}
+.np-event-bottom{display:flex;align-items:end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:auto;padding-top:20px;border-top:1px dashed rgba(245,241,223,.35)}
+.np-event-when{display:flex;align-items:center;gap:15px}
+.np-event-date{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:66px;padding:8px 10px;border:1px solid var(--acid);color:var(--acid)}
+.np-event-date strong{font:700 35px/.9 'Cabin Sketch',sans-serif}.np-event-date>span{font:11px 'Special Elite',monospace;margin-top:6px}
+.np-event-date-copy{font:15px/1.5 'Special Elite',monospace}.np-event-date-copy small{display:block;font:12px/1.7 'Special Elite',monospace;color:var(--acid)}
+.np-event-no-ticket{font:11px 'Special Elite',monospace;color:var(--acid)}
+.np-events-empty{grid-column:1/-1;padding:50px 24px;text-align:center}
+.np-event-preview{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.np-event-preview .np-event-card{display:flex;flex-direction:column;min-height:0}
+.np-event-preview .np-event-art{height:290px;min-height:0;border-right:0;border-bottom:1px dashed rgba(245,241,223,.35)}
+.np-event-preview .np-event-art>img{max-height:290px}
+.np-event-preview .np-event-info{flex:1;padding:22px}
+.np-event-preview .np-event-info h3{font-size:clamp(32px,3vw,46px);margin:16px 0 8px}
+.np-event-preview .np-event-artists{font-size:23px}
+.np-event-preview .np-event-description{font-size:18px}
+.np-event-preview .np-event-topline span:last-child{display:none}
+.np-event-preview .np-event-bottom{align-items:start}
+.np-event-preview .np-event-date-copy{font-size:12px}
+.np-event-preview .np-event-ticket{min-height:42px;padding:10px 13px}
+@media(max-width:1050px){.np-event-preview{grid-template-columns:repeat(2,minmax(0,1fr))}.np-hero-slider .np-hero-stage{height:580px}}
+@media(max-width:760px){.np-hero-slider .np-hero-stage{height:750px}.np-hero-slider .np-hero-grid{display:grid;grid-template-rows:minmax(0,1fr) minmax(0,330px);gap:12px}.np-hero-slider .np-hero-copy{align-self:start;padding:8px 0;overflow-y:auto}.np-hero-slider .np-hero-copy h1{font-size:clamp(54px,12vw,84px);margin:15px 0}.np-hero-slider .np-show-copy h1{font-size:clamp(43px,10vw,67px)}.np-hero-slider .np-hero-copy>p{font-size:19px;margin:10px 0}.np-hero-slider .np-hero-actions{margin-top:15px;gap:12px}.np-hero-slider .np-hero-poster{height:315px;min-height:0;margin:0 auto;padding:12px}.np-hero-slider .np-poster-border{min-height:0;padding:10px}.np-hero-slider .np-poster-art .np-poster-logo{max-height:190px}.np-hero-slider .np-show-poster{height:315px;max-width:370px}.np-hero-controls{gap:8px}.np-hero-controls button{width:36px;height:36px}.np-event-card{grid-template-columns:1fr;min-height:0}.np-event-art{min-height:0;height:330px;border-right:0;border-bottom:1px dashed rgba(245,241,223,.35)}.np-event-art>img{max-height:330px}.np-event-info{padding:24px}.np-event-info h3{font-size:clamp(40px,9vw,65px)}.np-event-preview{grid-template-columns:1fr}.np-event-preview .np-event-art{height:270px}.np-event-preview .np-event-art>img{max-height:270px}}
+@media(max-width:390px){.np-hero-slider .np-hero-stage{height:710px}.np-hero-slider .np-hero-grid{grid-template-rows:minmax(0,1fr) 275px}.np-hero-slider .np-hero-poster,.np-hero-slider .np-show-poster{height:265px}.np-hero-slider .np-poster-art .np-poster-logo{max-height:155px}}
+@media(prefers-reduced-motion:reduce){.np-hero-slider .np-hero-grid{animation:none}}
