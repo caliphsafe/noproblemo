@@ -44,3 +44,5 @@
 .np-archive-illustration{background:linear-gradient(135deg,rgba(11,22,16,.17),rgba(11,22,16,.45)),url('/noprobs.avif') center/cover}
 .np-story-art-photo{background:linear-gradient(135deg,rgba(11,22,16,.35),rgba(11,22,16,.6)),url('/noprobs.avif') center/cover}
 @media(max-width:760px){.np-header .np-brand img{width:145px;max-height:100px}.np-poster-art .np-poster-logo{width:min(95%,345px);max-height:280px}.np-poster-art{padding:10px 0}}
+
+.np-story-art-photo .np-story-local-logo{position:relative;z-index:1;width:100%;height:auto;max-height:315px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.22))}
