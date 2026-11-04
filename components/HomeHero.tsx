@@ -7,6 +7,7 @@ export default function HomeHero({events}:{events:HeroEvent[]}){
  const [index,setIndex]=useState(0);
  const [paused,setPaused]=useState(false);
  const total=events.length+1;
+ useEffect(()=>{const urls=[...new Set(events.slice(0,3).map(e=>e.flyer_file_id).filter(Boolean))];const preloads=urls.map(id=>{const img=new window.Image();img.src='/api/media/'+encodeURIComponent(id);return img});return()=>{preloads.forEach(img=>{img.onload=null;img.onerror=null})}},[events]);
  useEffect(()=>{if(total<2||paused)return;const timer=window.setInterval(()=>setIndex(i=>(i+1)%total),10000);return()=>window.clearInterval(timer)},[total,paused,index]);
  const event=index===0?null:events[index-1];
  return <section className="np-hero np-hero-slider" aria-label="No Problemo and upcoming shows">
