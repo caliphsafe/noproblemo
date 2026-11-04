@@ -18,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context':'https://schema.org', '@type':'Restaurant', name:'No Problemo',
     address:{'@type':'PostalAddress',streetAddress:'813 Purchase Street',addressLocality:'New Bedford',addressRegion:'MA',postalCode:'02740',addressCountry:'US'},
     telephone:'+1-508-984-1081', paymentAccepted:'Cash', currenciesAccepted:'USD', servesCuisine:['Mexican-inspired','Taqueria'],
-    hasMenu: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://noproblemo.example.com'}/menu`\n  };
+    hasMenu: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://noproblemo.example.com'}/menu`
+  };
   return <html lang="en"><body><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema)}} />{children}</body></html>;
 }
