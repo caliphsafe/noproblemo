@@ -21,7 +21,7 @@ export async function EventsContent({preview=false}:{preview?:boolean}){
  const dateParts=(date:string)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;const d=new Date(date+'T12:00:00Z');return Number.isNaN(d.getTime())?null:{month:new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(d).toUpperCase(),day:new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:'UTC'}).format(d),long:new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'UTC'}).format(d)}};
  return <div className={preview?'np-event-list np-event-preview':'np-event-list np-event-full'}>
  {shown.map((e,i)=>{const date=dateParts(e.event_date||'');return <article className="np-event-card" key={e.id||i}>
- <div className="np-event-art">{e.flyer_file_id?<img src={'/api/media/'+encodeURIComponent(e.flyer_file_id)} alt={e.flyer_alt||e.title} loading="lazy"/>:<div className="np-event-art-fallback"><img src="/logo.png" alt="" loading="lazy"/><span>LIVE AT NO PROBLEMO</span></div>}</div>
+ <div className="np-event-art">{e.flyer_file_id?<img src={'/api/media/'+encodeURIComponent(e.flyer_file_id)} alt={e.flyer_alt||e.title} loading={i===0&&!preview?"eager":"lazy"} fetchPriority={i===0&&!preview?"high":"auto"} decoding="async"/>:<div className="np-event-art-fallback"><img src="/logo.png" alt="" loading="lazy"/><span>LIVE AT NO PROBLEMO</span></div>}</div>
  <div className="np-event-info"><div className="np-event-topline"><span className="micro">{i===0?'UP NEXT':'ON THE CALENDAR'}</span><span className="micro">NO PROBLEMO / NEW BEDFORD</span></div>
  <h3>{e.title}</h3>{e.artists&&<p className="np-event-artists">{e.artists}</p>}
  {e.description&&<p className="np-event-description">{e.description}</p>}
