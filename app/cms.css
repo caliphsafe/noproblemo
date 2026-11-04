@@ -219,3 +219,12 @@ html,body{
   background-size:760px auto;
   background-repeat:repeat;
 }
+
+/* Decorative asterisks are text-only, never platform emoji. */
+.np-site .np-scribble,.np-site .np-handdrawn-star,.np-site .cms-sunburst{
+  font-family:'Cabin Sketch',Arial,sans-serif;
+  font-weight:700;
+  font-variant-emoji:text;
+}
+.np-site .np-scribble{font-size:100px;line-height:1}
+.np-site .np-handdrawn-star{font-size:clamp(160px,20vw,300px)}
