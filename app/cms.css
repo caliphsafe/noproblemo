@@ -129,3 +129,12 @@
 .np-home-menu-details .np-chalk-button{background:var(--acid);border-color:var(--acid);color:var(--ink);font-weight:700}
 .np-home-menu-details .np-chalk-button:hover{background:var(--cream);border-color:var(--cream)}
 @media(max-width:760px){.np-home-menu-teaser{grid-template-columns:1fr;gap:20px}.np-home-menu-photo{height:270px}.np-home-menu-details>p{margin-bottom:18px}.np-home-menu-categories{margin-bottom:24px}}
+
+/* Image framing tuned for the uploaded No Problemo photography */
+.np-page-heading-menu .np-page-heading-visual img{object-position:center 45%}
+.np-page-heading-events .np-page-heading-visual img{object-position:center center}
+.np-page-heading-about .np-page-heading-visual img{object-position:center center}
+.np-photo-wall>div{height:clamp(260px,29vw,360px)}
+.np-photo-wall img{height:100%;min-height:0;max-height:none;object-fit:cover}
+.np-story-art-photo .np-story-background-photo{object-position:center center}
+@media(max-width:760px){.np-photo-wall>div{height:280px}.np-photo-wall img{height:100%;min-height:0;max-height:none}}
