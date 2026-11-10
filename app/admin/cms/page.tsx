@@ -67,9 +67,9 @@ export default function CmsAdmin(){
     xhr.onload=()=>{try{const result=JSON.parse(xhr.responseText);if(xhr.status<200||xhr.status>=300)throw Error(result.error||'Image upload failed');resolve(result.data||{})}catch(e){reject(e)}};
     xhr.onerror=()=>reject(Error('Network error while uploading flyer'));
     xhr.onabort=()=>reject(Error('Flyer upload was interrupted'));
-    xhr.send(JSON.stringify({kind:'flyer',mimeType:file.type,base64,fileName:file.name,altText:file.name,existingFileId:!newRecord?originalRecord?.flyer_file_id||undefined:undefined}));
+    xhr.send(JSON.stringify({kind:'flyer',mimeType:file.type,base64,fileName:file.name,altText:file.name,existingFileId:!newRecord?originalRecord?.flyer_file_id||undefined:undefined,eventId:!newRecord?originalRecord?.id||undefined:undefined,isExistingEvent:!newRecord}));
    });
-   const id=data.fileId||data.id;if(!id)throw Error('Upload did not return an image ID');
+   const id=data.fileId||data.id;if(!id)throw Error('Upload did not return an image ID');if(!newRecord&&originalRecord?.flyer_file_id&&id!==originalRecord.flyer_file_id)throw Error('Replacement did not preserve the original flyer ID. Please contact support before saving.');
    setRecord(r=>r?{...r,flyer_file_id:id,flyer_alt:r.title||file.name}:r);
    setUploadProgress(100);setFlyerReady(true);setError('');
   }catch(e){setFlyerReady(false);setError(e instanceof Error?e.message:'Could not upload flyer')}
