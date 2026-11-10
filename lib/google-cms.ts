@@ -11,7 +11,7 @@ export async function publicCms(table:CmsTable):Promise<Record<string,string>[]>
 }
 export async function privateCms(payload:Record<string,unknown>){
  const secret=process.env.GOOGLE_CMS_API_SECRET;if(!secret)throw Error('GOOGLE_CMS_API_SECRET is not configured');
- const response=await fetch(endpoint(),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...payload,secret}),cache:'no-store',redirect:'follow'});
+ const response=await fetch(endpoint(),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...payload,secret}),cache:'no-store',redirect:'follow',signal:AbortSignal.timeout(payload.action==='image'?12000:25000)});
  if(!response.ok)throw Error('CMS request failed');
  const result=await response.json();if(!result.ok)throw Error(result.error||'CMS rejected request');return result.data;
 }
