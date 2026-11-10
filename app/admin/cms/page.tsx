@@ -60,7 +60,7 @@ export default function CmsAdmin(){
   uploadingRef.current=true;setUploading(true);setUploadProgress(0);setFlyerReady(false);setUploadAttempted(true);setError('');
   try{
    const base64=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('Could not read image'));reader.readAsDataURL(file)});
-   const data=await new Promise<{fileId?:string;id?:string}>((resolve,reject)=>{
+   const data=await new Promise<{fileId?:string;id?:string;cleanupWarning?:string}>((resolve,reject)=>{
     const xhr=new XMLHttpRequest();uploadRequestRef.current=xhr;
     xhr.open('POST','/api/admin/cms/upload');xhr.setRequestHeader('content-type','application/json');
     xhr.upload.onprogress=event=>{if(event.lengthComputable)setUploadProgress(Math.min(95,Math.round(event.loaded/event.total*95)))};
@@ -69,9 +69,9 @@ export default function CmsAdmin(){
     xhr.onabort=()=>reject(Error('Flyer upload was interrupted'));
     xhr.send(JSON.stringify({kind:'flyer',mimeType:file.type,base64,fileName:file.name,altText:file.name,existingFileId:!newRecord?originalRecord?.flyer_file_id||undefined:undefined,eventId:!newRecord?originalRecord?.id||undefined:undefined,isExistingEvent:!newRecord}));
    });
-   const id=data.fileId||data.id;if(!id)throw Error('Upload did not return an image ID');if(!newRecord&&originalRecord?.flyer_file_id&&id!==originalRecord.flyer_file_id)throw Error('Replacement did not preserve the original flyer ID. Please contact support before saving.');
+   const id=data.fileId||data.id;if(!id)throw Error('Upload did not return an image ID');
    setRecord(r=>r?{...r,flyer_file_id:id,flyer_alt:r.title||file.name}:r);
-   setUploadProgress(100);setFlyerReady(true);setError('');
+   setUploadProgress(100);setFlyerReady(true);setError(data.cleanupWarning||'');
   }catch(e){setFlyerReady(false);setError(e instanceof Error?e.message:'Could not upload flyer')}
   finally{uploadRequestRef.current=null;uploadingRef.current=false;setUploading(false)}
  }
