@@ -14,19 +14,21 @@ export async function MenuContent({preview=false}:{preview?:boolean}){
  return <MenuExplorer categories={menuCategories} preview={preview}/>;
 }
 export async function EventsContent({preview=false}:{preview?:boolean}){
- const events=(await publicCms('Events')).filter(e=>e.status==='published').sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||''));
+ const events=(await publicCms('Events')).filter(e=>String(e.status||'').trim().toLowerCase()==='published').sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||''));
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const upcoming=events.filter(e=>!e.event_date||e.event_date>=today);
- const shown=preview?upcoming.slice(0,3):upcoming;
+ const cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+ const recent=events.filter(e=>e.event_date&&e.event_date<today&&e.event_date>=cutoff).reverse();
+ const shown=preview?[...upcoming,...recent].slice(0,3):[...upcoming,...recent];
  const dateParts=(date:string)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;const d=new Date(date+'T12:00:00Z');return Number.isNaN(d.getTime())?null:{month:new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(d).toUpperCase(),day:new Intl.DateTimeFormat('en-US',{day:'2-digit',timeZone:'UTC'}).format(d),long:new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'UTC'}).format(d)}};
  return <div className={preview?'np-event-list np-event-preview':'np-event-list np-event-full'}>
  {shown.map((e,i)=>{const date=dateParts(e.event_date||'');return <article className="np-event-card" key={e.id||i}>
  <div className="np-event-art">{e.flyer_file_id?<img src={'/api/media/'+encodeURIComponent(e.flyer_file_id)} alt={e.flyer_alt||e.title} loading={i===0&&!preview?"eager":"lazy"} fetchPriority={i===0&&!preview?"high":"auto"} decoding="async"/>:<div className="np-event-art-fallback"><img src="/logo.png" alt="" loading="lazy"/><span>LIVE AT NO PROBLEMO</span></div>}</div>
- <div className="np-event-info"><div className="np-event-topline"><span className="micro">{i===0?'UP NEXT':'ON THE CALENDAR'}</span><span className="micro">NO PROBLEMO / NEW BEDFORD</span></div>
+ <div className="np-event-info"><div className="np-event-topline"><span className="micro">{e.event_date&&e.event_date<today?'RECENT SHOW':i===0?'UP NEXT':'ON THE CALENDAR'}</span><span className="micro">NO PROBLEMO / NEW BEDFORD</span></div>
  <h3>{e.title}</h3>{e.artists&&<p className="np-event-artists">{e.artists}</p>}
  {e.description&&<p className="np-event-description">{e.description}</p>}
  <div className="np-event-bottom"><div className="np-event-when">{date?<span className="np-event-date"><strong>{date.day}</strong><span>{date.month}</span></span>:null}<span className="np-event-date-copy">{date?.long||'DATE TO BE ANNOUNCED'}{e.show_time&&<small>SHOWTIME · {e.show_time}</small>}</span></div>
  {e.ticket_url?<a className="np-chalk-button np-event-ticket" href={e.ticket_url} target="_blank" rel="noopener noreferrer">GET TICKETS ↗︎</a>:<span className="np-event-no-ticket">DETAILS COMING SOON</span>}</div></div></article>})}
- {!upcoming.length&&<div className="cms-events-empty np-events-empty"><span className="cms-sunburst">*</span><h3>MORE GOOD TIMES COMING SOON.</h3><p>No shows on the calendar right now. Follow us for the next announcement.</p><a className="np-underlined-link" href="https://www.instagram.com/noproblemotaqueria/" target="_blank" rel="noopener noreferrer">FOLLOW ON INSTAGRAM ↗︎</a></div>}
+ {!shown.length&&<div className="cms-events-empty np-events-empty"><span className="cms-sunburst">*</span><h3>MORE GOOD TIMES COMING SOON.</h3><p>No shows on the calendar right now. Follow us for the next announcement.</p><a className="np-underlined-link" href="https://www.instagram.com/noproblemotaqueria/" target="_blank" rel="noopener noreferrer">FOLLOW ON INSTAGRAM ↗︎</a></div>}
  </div>;
 }
